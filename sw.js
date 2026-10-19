@@ -3,23 +3,25 @@ const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/pages/index.html', // sesuaikan jika ada
   '/pages/promo.html',
   '/pages/manajemen.html',
   '/pages/banner.html',
-  '/pages/profil.html',
-  '/assets/js/app.js',
-  '/assets/js/firebase-config.js',
-  '/assets/icons/icon-192.png',
-  '/assets/icons/icon-512.png'
+  '/pages/profil.html'
 ];
 
-// 1. Install Service Worker & Cache Aset Dasar
+// 1. Install Service Worker & Cache Aset Dasar Secara Aman
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('Membuka cache dan menyimpan aset utama');
-      return cache.addAll(ASSETS_TO_CACHE);
+      // Menggunakan Promise.allSettled atau loop agar jika ada 1 file gagal, tidak merusak instalasi keseluruhan
+      return Promise.all(
+        ASSETS_TO_CACHE.map(path => {
+          return cache.add(path).catch(err => {
+            console.warn('Gagal mencache aset:', path, err);
+          });
+        })
+      );
     })
   );
   self.skipWaiting();
