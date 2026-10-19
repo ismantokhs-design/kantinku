@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warungku PWA</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Manifest PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#dc2626">
+</head>
+<body class="bg-gray-100 text-gray-900 font-sans min-h-screen flex flex-col justify-between">
+
+    <!-- ================= PAGE 1: HALAMAN SAMBUTAN & LOGIN ================= -->
+    <div id="landingPage" class="flex flex-col items-center justify-center min-h-screen p-4 bg-white">
+        <main class="w-full max-w-md text-center space-y-8">
+            <h1 class="text-4xl font-extrabold text-gray-950 tracking-tight">Selamat Datang</h1>
+
+            <!-- Logo Warungku -->
+            <div class="flex justify-center">
+                <div class="inline-flex items-center border-4 border-red-600 rounded-full px-5 py-3 shadow-inner">
+                    <div class="w-12 h-12 bg-blue-900 rounded-full flex items-center justify-center text-white font-bold text-2xl mr-3">W</div>
+                    <div class="text-left">
+                        <span class="block text-sm font-semibold text-black tracking-widest uppercase">APLIKASI</span>
+                        <span class="block text-4xl font-black text-red-600 leading-none">warungku</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slogan -->
+            <div class="space-y-2">
+                <p class="text-lg font-medium text-gray-800">Nikmati kemudahan kelola warung Anda</p>
+                <p class="text-2xl font-bold text-red-600 uppercase tracking-wide">WARUNGKU</p>
+            </div>
+
+            <!-- Tombol Aksi -->
+            <div class="flex flex-col gap-3 pt-4">
+                <button id="btnMasuk" class="w-full bg-red-600 text-white py-4 px-6 rounded-full text-lg font-bold shadow-lg hover:bg-red-700 transition cursor-pointer">
+                    Masuk dengan Email
+                </button>
+                <button class="w-full bg-white border-2 border-gray-300 text-gray-800 py-4 px-6 rounded-full text-lg font-semibold shadow-sm hover:bg-gray-50 transition">
+                    Lihat Semua Promo
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- ================= MODAL INPUT EMAIL ================= -->
+    <div id="emailModal" class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center space-y-5 relative">
+            <button id="btnCloseModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-lg cursor-pointer">✕</button>
+            
+            <h3 class="text-xl font-bold text-gray-800">Masukkan Alamat Email</h3>
+            <p class="text-xs text-gray-500">Masukkan email Anda untuk masuk atau mendaftar ke aplikasi Warungku.</p>
+
+            <form id="emailForm" class="space-y-4">
+                <input type="email" id="userEmailInput" required placeholder="nama@email.com" 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 text-sm">
+                <button type="submit" class="w-full bg-red-600 text-white py-3 rounded-xl font-bold shadow-md hover:bg-red-700 transition cursor-pointer">
+                    Masuk
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= PAGE 2: HALAMAN UTAMA (DASHBOARD) ================= -->
+    <div id="mainApp" class="hidden flex-col min-h-screen pb-20">
+        <!-- Header Atas: Profil Toko di Kiri (Nama, Telp, Alamat), User Login di Kanan -->
+        <header class="bg-white shadow-sm p-3 flex justify-between items-center sticky top-0 z-40">
+            <!-- Profil Toko (Logo, Nama Toko, No Telp, & Alamat) di Kiri -->
+            <div class="relative">
+                <button id="profileTokoBtn" class="flex items-center gap-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full py-1.5 pl-1.5 pr-3.5 transition shadow-xs focus:outline-none cursor-pointer">
+                    <div class="w-9 h-9 rounded-full bg-blue-900 text-white flex items-center justify-center font-bold text-sm overflow-hidden shadow-inner flex-shrink-0">
+                        <span id="headerLogoInitial">W</span>
+                        <img id="headerLogoImg" src="" alt="Logo" class="w-full h-full object-cover hidden">
+                    </div>
+                    <div class="text-left leading-tight">
+                        <span id="headerNamaWarung" class="block text-xs font-bold text-gray-900 truncate max-w-[140px]">Warungku</span>
+                        <span id="headerTeleponWarung" class="block text-[10px] text-gray-500 truncate max-w-[140px]">Ketuk untuk info</span>
+                        <span id="headerAlamatWarung" class="block text-[9px] text-gray-400 truncate max-w-[140px]">Alamat...</span>
+                    </div>
+                </button>
+
+                <!-- Dropdown Menu / Detail Toko -->
+                <div id="dropdownToko" class="absolute left-0 mt-2 w-64 bg-white border border-gray-200 rounded-2xl shadow-xl py-3 px-4 hidden z-50 space-y-3">
+                    <div class="border-b border-gray-100 pb-2.5">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Informasi Toko</p>
+                        <p id="dropNamaWarung" class="text-xs font-bold text-gray-900 mt-0.5">Memuat...</p>
+                        <p id="dropAlamatWarung" class="text-[11px] text-gray-500 mt-0.5 leading-snug">Alamat belum diatur.</p>
+                    </div>
+                    <div class="space-y-1.5">
+                        <a href="pages/profil.html" class="w-full text-left px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 rounded-xl transition flex items-center gap-2">
+                            <span>⚙️</span> Edit Profil Toko
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Login di Kanan -->
+            <div class="relative">
+                <button id="profileBtn" class="flex items-center space-x-2 focus:outline-none cursor-pointer">
+                    <div id="userAvatar" class="w-10 h-10 rounded-full bg-blue-900 text-white overflow-hidden flex items-center justify-center font-bold text-sm shadow">
+                        U
+                    </div>
+                </button>
+
+                <!-- Menu Dropdown User Login -->
+                <div id="dropdownMenu" class="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg py-2 hidden z-50">
+                    <div class="px-4 py-2 border-b border-gray-100">
+                        <p class="text-xs text-gray-400">Masuk sebagai:</p>
+                        <p id="userEmailDisplay" class="text-xs font-bold text-gray-800 truncate">email@domain.com</p>
+                    </div>
+                    <button id="btnLogout" class="w-full text-left px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 transition flex items-center gap-2 cursor-pointer">
+                        <span>🚪</span> Keluar
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Konten Beranda -->
+        <main class="p-4 max-w-md mx-auto w-full space-y-4 flex-1">
+            <!-- Banner Slider Dinamis dari Firestore -->
+            <div class="bg-white rounded-2xl shadow-sm overflow-hidden p-2 space-y-2">
+                <div class="h-44 bg-gray-200 rounded-xl overflow-hidden relative flex items-center justify-center">
+                    <div id="sliderContainer" class="w-full h-full relative">
+                        <div class="slide absolute inset-0 transition-opacity duration-700 opacity-100 flex items-center justify-center bg-gray-100 text-gray-400 text-xs">
+                            Memuat banner...
+                        </div>
+                    </div>
+                </div>
+
+                <div id="sliderDots" class="flex justify-center space-x-1.5 py-1"></div>
+            </div>
+
+            <!-- Jam Operasional -->
+            <div class="text-center text-xs text-gray-500 px-2">
+                Kami buka setiap hari pukul 07.00 – 22.00 WIB. Terima kasih telah berbelanja di Warungku.
+            </div>
+
+            <!-- Bagian Promo Hari Ini -->
+            <div class="space-y-3">
+                <div class="flex justify-between items-center px-1">
+                    <h2 class="font-bold text-base text-gray-900">Promo Hari Ini</h2>
+                    <span class="text-xs font-semibold text-blue-600 cursor-pointer">Lihat Semua</span>
+                </div>
+
+                <div id="promoGridContainer" class="grid grid-cols-2 gap-3">
+                    <p class="col-span-2 text-center text-xs text-gray-400 py-4">Memuat promo...</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- ================= NAVIGASI BAWAH (BOTTOM NAVIGATION) ================= -->
+        <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4 flex justify-around items-center z-50 max-w-md mx-auto">
+            <a href="#" class="flex flex-col items-center text-red-600 text-xs font-semibold">
+                <span class="text-lg">🏠</span>
+                <span>Beranda</span>
+            </a>
+            <a href="pages/promo.html" class="flex flex-col items-center text-gray-400 text-xs font-medium">
+                <span class="text-lg">🏷️</span>
+                <span>Promo</span>
+            </a>
+            <a href="#" class="flex flex-col items-center text-gray-400 text-xs font-medium">
+                <span class="text-lg">📢</span>
+                <span>Broadcast</span>
+            </a>
+            <a href="#" class="flex flex-col items-center text-gray-400 text-xs font-medium">
+                <span class="text-lg">📅</span>
+                <span>Event</span>
+            </a>
+            <button id="btnLainnya" class="flex flex-col items-center text-gray-400 text-xs font-medium bg-transparent border-none cursor-pointer focus:outline-none">
+                <span class="text-lg">☰</span>
+                <span>Lainnya</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- ================= OPTION MENU (POP-UP) ================= -->
+    <div id="optionMenuModal" class="fixed inset-0 bg-black/30 flex items-end justify-end pb-16 pr-4 z-50 hidden">
+        <div class="bg-white text-gray-800 w-52 rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+            <div class="bg-red-600 text-white px-4 py-2.5 flex justify-between items-center">
+                <span class="font-bold tracking-wider text-xs uppercase">OPTION MENU</span>
+                <button id="btnCloseOption" class="text-white hover:text-gray-200 font-bold text-sm cursor-pointer">✕</button>
+            </div>
+            <div class="py-1 divide-y divide-gray-100 text-xs font-medium">
+                <a href="pages/profil.html" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-gray-700">
+                    <span class="text-red-600 text-base">⚙️</span>
+                    <span>Pengaturan</span>
+                </a>
+                <a href="pages/manajemen.html" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-gray-700">
+                    <span class="text-red-600 text-base">🏷️</span>
+                    <span>Manajemen</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-gray-700">
+                    <span class="text-red-600 text-base">📅</span>
+                    <span>Event</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-gray-700">
+                    <span class="text-red-600 text-base">📦</span>
+                    <span>Lihat Pesanan</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= PANGGIL SKRIP MODULAR (APP.JS) ================= -->
+    <script type="module" src="assets/js/app.js"></script>
+
+    <!-- Skrip Tambahan untuk Memuat Banner, Promo, & Profil Toko Dinamis dari Firestore -->
+    <script type="module">
+        import { db } from "./assets/js/firebase-config.js";
+        import { collection, getDocs, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        async function loadDynamicContent() {
+            const sliderContainer = document.getElementById('sliderContainer');
+            const sliderDots = document.getElementById('sliderDots');
+            const promoGridContainer = document.getElementById('promoGridContainer');
+
+            // Elemen Header Profil Toko
+            const headerNamaWarung = document.getElementById('headerNamaWarung');
+            const headerTeleponWarung = document.getElementById('headerTeleponWarung');
+            const headerAlamatWarung = document.getElementById('headerAlamatWarung');
+            const headerLogoInitial = document.getElementById('headerLogoInitial');
+            const headerLogoImg = document.getElementById('headerLogoImg');
+            const dropNamaWarung = document.getElementById('dropNamaWarung');
+            const dropAlamatWarung = document.getElementById('dropAlamatWarung');
+
+            try {
+                // 1. Muat Profil Toko (Koleksi "toko", Dokumen "informasi")
+                const tokoRef = doc(db, "toko", "informasi");
+                const tokoSnap = await getDoc(tokoRef);
+
+                if (tokoSnap.exists()) {
+                    const tokoData = tokoSnap.data();
+                    const namaW = tokoData.namaWarung || "Warungku";
+                    const telpW = tokoData.telepon || "Belum ada No Telp";
+                    const alamatW = tokoData.alamat || "Alamat belum diatur.";
+
+                    headerNamaWarung.textContent = namaW;
+                    headerTeleponWarung.textContent = telpW;
+                    headerAlamatWarung.textContent = alamatW;
+                    dropNamaWarung.textContent = namaW;
+                    dropAlamatWarung.textContent = alamatW;
+
+                    if (tokoData.logo) {
+                        headerLogoImg.src = tokoData.logo;
+                        headerLogoImg.classList.remove('hidden');
+                        headerLogoInitial.classList.add('hidden');
+                    } else {
+                        headerLogoInitial.textContent = namaW.charAt(0).toUpperCase();
+                    }
+                }
+
+                // 2. Muat Banner Aktif
+                const bannerQuery = query(collection(db, "banner"), where("status", "==", true));
+                const bannerSnapshot = await getDocs(bannerQuery);
+
+                if (!bannerSnapshot.empty) {
+                    let slidesHTML = "";
+                    let dotsHTML = "";
+                    let index = 0;
+
+                    bannerSnapshot.forEach((docSnap) => {
+                        const data = docSnap.data();
+                        const opacityClass = index === 0 ? "opacity-100" : "opacity-0";
+                        const dotClass = index === 0 ? "bg-red-600 w-5" : "bg-gray-300 w-2";
+
+                        slidesHTML += `
+                            <div class="slide absolute inset-0 transition-opacity duration-700 ${opacityClass}">
+                                <img src="${data.gambar}" alt="${data.nama}" class="w-full h-full object-cover">
+                                <div class="absolute bottom-3 left-3 bg-black/60 text-white text-xs px-3 py-1 rounded-full backdrop-blur-xs">
+                                    ${data.nama}
+                                </div>
+                            </div>
+                        `;
+                        dotsHTML += `<span class="dot h-2 rounded-full ${dotClass} transition-all duration-300 cursor-pointer" data-index="${index}"></span>`;
+                        index++;
+                    });
+
+                    sliderContainer.innerHTML = slidesHTML;
+                    if (sliderDots) sliderDots.innerHTML = dotsHTML;
+                    startSliderTimer();
+                } else {
+                    sliderContainer.innerHTML = `<div class="slide absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400 text-xs">Belum ada banner aktif</div>`;
+                }
+
+                // 3. Muat Promo Aktif
+                const promoQuery = query(collection(db, "promo"), where("status", "==", true));
+                const promoSnapshot = await getDocs(promoQuery);
+
+                if (!promoSnapshot.empty) {
+                    let promoHTML = "";
+                    promoSnapshot.forEach((docSnap) => {
+                        const data = docSnap.data();
+                        promoHTML += `
+                            <div class="bg-white rounded-xl shadow-sm overflow-hidden p-2 space-y-2 relative">
+                                <div class="h-32 bg-gray-200 rounded-lg overflow-hidden">
+                                    <img src="${data.gambar}" alt="${data.nama}" class="w-full h-full object-cover">
+                                </div>
+                                <div class="absolute bottom-4 left-4 bg-gradient-to-t from-black/80 to-transparent w-full p-2 rounded-b-lg">
+                                    <p class="text-[10px] font-bold text-white uppercase">${data.nama}</p>
+                                    <p class="text-xs font-black text-yellow-400">${data.keterangan || ''}</p>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    promoGridContainer.innerHTML = promoHTML;
+                } else {
+                    promoGridContainer.innerHTML = `<p class="col-span-2 text-center text-xs text-gray-400 py-4">Belum ada promo aktif.</p>`;
+                }
+
+            } catch (err) {
+                console.error("Gagal memuat konten dinamis: ", err);
+            }
+        }
+
+        function startSliderTimer() {
+            const slides = document.querySelectorAll('.slide');
+            const dots = document.querySelectorAll('.dot');
+            if (slides.length <= 1) return;
+
+            let currentIndex = 0;
+            setInterval(() => {
+                slides[currentIndex].classList.remove('opacity-100');
+                slides[currentIndex].classList.add('opacity-0');
+                if(dots[currentIndex]) {
+                    dots[currentIndex].classList.remove('bg-red-600', 'w-5');
+                    dots[currentIndex].classList.add('bg-gray-300', 'w-2');
+                }
+
+                currentIndex = (currentIndex + 1) % slides.length;
+
+                slides[currentIndex].classList.remove('opacity-0');
+                slides[currentIndex].classList.add('opacity-100');
+                if(dots[currentIndex]) {
+                    dots[currentIndex].classList.remove('bg-gray-300', 'w-2');
+                    dots[currentIndex].classList.add('bg-red-600', 'w-5');
+                }
+            }, 3500);
+        }
+
+        // Toggle Dropdown Profil Toko di Header Kiri
+        const profileTokoBtn = document.getElementById('profileTokoBtn');
+        const dropdownToko = document.getElementById('dropdownToko');
+
+        if (profileTokoBtn) {
+            profileTokoBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdownToko.classList.toggle('hidden');
+            });
+        }
+
+        window.addEventListener('click', (e) => {
+            if (dropdownToko && !dropdownToko.classList.contains('hidden') && !profileTokoBtn.contains(e.target)) {
+                dropdownToko.classList.add('hidden');
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", loadDynamicContent);
+    </script>
+</body>
+</html>
