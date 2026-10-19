@@ -72,12 +72,12 @@
             <div class="relative">
                 <button id="profileTokoBtn" class="flex items-center gap-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full py-1.5 pl-1.5 pr-3.5 transition shadow-xs focus:outline-none cursor-pointer">
                     <div class="w-9 h-9 rounded-full bg-blue-900 text-white flex items-center justify-center font-bold text-sm overflow-hidden shadow-inner flex-shrink-0">
-                        <span id="headerLogoInitial">W</span>
+                        <span id="headerLogoInitial">K</span>
                         <img id="headerLogoImg" src="" alt="Logo" class="w-full h-full object-cover hidden">
                     </div>
                     <div class="text-left leading-tight">
-                        <span id="headerNamaWarung" class="block text-xs font-bold text-gray-900 truncate max-w-[140px]">Warungku</span>
-                        <span id="headerTeleponWarung" class="block text-[10px] text-gray-500 truncate max-w-[140px]">Ketuk untuk info</span>
+                        <span id="headerNamaWarung" class="block text-xs font-bold text-gray-900 truncate max-w-[140px]">Kantin Ku</span>
+                        <span id="headerTeleponWarung" class="block text-[10px] text-gray-500 truncate max-w-[140px]">01234567896</span>
                         <span id="headerAlamatWarung" class="block text-[9px] text-gray-400 truncate max-w-[140px]">Alamat...</span>
                     </div>
                 </button>
@@ -86,7 +86,7 @@
                 <div id="dropdownToko" class="absolute left-0 mt-2 w-64 bg-white border border-gray-200 rounded-2xl shadow-xl py-3 px-4 hidden z-50 space-y-3">
                     <div class="border-b border-gray-100 pb-2.5">
                         <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Informasi Toko</p>
-                        <p id="dropNamaWarung" class="text-xs font-bold text-gray-900 mt-0.5">Memuat...</p>
+                        <p id="dropNamaWarung" class="text-xs font-bold text-gray-900 mt-0.5">Kantin Ku</p>
                         <p id="dropAlamatWarung" class="text-[11px] text-gray-500 mt-0.5 leading-snug">Alamat belum diatur.</p>
                     </div>
                     <div class="space-y-1.5">
@@ -135,7 +135,7 @@
 
             <!-- Jam Operasional -->
             <div class="text-center text-xs text-gray-500 px-2">
-                Kami buka setiap hari pukul 07.00 – 22.00 WIB. Terima kasih telah berbelanja di Warungku.
+                Kami buka setiap hari pukul 07.00 – 22.00 WIB. Terima kasih telah berbelanja di Kantin Ku.
             </div>
 
             <!-- Bagian Promo Hari Ini -->
@@ -207,6 +207,17 @@
     <!-- ================= PANGGIL SKRIP MODULAR (APP.JS) ================= -->
     <script type="module" src="assets/js/app.js"></script>
 
+    <!-- Skrip Pendaftaran Service Worker (Agar PWA Bisa Diinstal) -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((reg) => console.log('Service Worker terdaftar dengan scope:', reg.scope))
+                    .catch((err) => console.error('Pendaftaran Service Worker gagal:', err));
+            });
+        }
+    </script>
+
     <!-- Skrip Tambahan untuk Memuat Banner, Promo, & Profil Toko Dinamis dari Firestore -->
     <script type="module">
         import { db } from "./assets/js/firebase-config.js";
@@ -233,8 +244,8 @@
 
                 if (tokoSnap.exists()) {
                     const tokoData = tokoSnap.data();
-                    const namaW = tokoData.namaWarung || "Warungku";
-                    const telpW = tokoData.telepon || "Belum ada No Telp";
+                    const namaW = tokoData.namaWarung || "Kantin Ku";
+                    const telpW = tokoData.telepon || "01234567896";
                     const alamatW = tokoData.alamat || "Alamat belum diatur.";
 
                     headerNamaWarung.textContent = namaW;

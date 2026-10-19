@@ -2,9 +2,16 @@ const CACHE_NAME = 'kantin-ku-v1';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
+  '/manifest.json',
+  '/pages/index.html', // sesuaikan jika ada
   '/pages/promo.html',
   '/pages/manajemen.html',
-  '/manifest.json'
+  '/pages/banner.html',
+  '/pages/profil.html',
+  '/assets/js/app.js',
+  '/assets/js/firebase-config.js',
+  '/assets/icons/icon-192.png',
+  '/assets/icons/icon-512.png'
 ];
 
 // 1. Install Service Worker & Cache Aset Dasar
@@ -37,7 +44,6 @@ self.addEventListener('activate', (event) => {
 
 // 3. Fetch Strategy: Cache First, fallback to Network
 self.addEventListener('fetch', (event) => {
-  // Lewati request Firestore atau API eksternal agar selalu mengambil data terbaru dari jaringan
   if (event.request.url.includes('firestore.googleapis.com') || event.request.method !== 'GET') {
     return;
   }
@@ -49,14 +55,12 @@ self.addEventListener('fetch', (event) => {
       }
       return fetch(event.request).then((networkResponse) => {
         return caches.open(CACHE_NAME).then((cache) => {
-          // Cache file yang berhasil diambil dari network (opsional untuk halaman/aset statis)
           if (event.request.url.startsWith(self.location.origin)) {
             cache.put(event.request, networkResponse.clone());
           }
           return networkResponse;
         });
       }).catch(() => {
-        // Fallback offline bisa diarahkan ke halaman khusus jika diperlukan
         if (event.request.mode === 'navigate') {
           return caches.match('/index.html');
         }
