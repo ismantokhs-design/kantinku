@@ -20,7 +20,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col justify-between pb-24 relative">
+<body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col justify-between pb-24 relative select-none">
 
     <!-- ================= TOAST NOTIFICATION (SMOOTH POPUP) ================= -->
     <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2">
@@ -48,24 +48,17 @@
             <h1 class="text-lg font-bold text-gray-900">Manajemen Banner</h1>
         </div>
 
-        <!-- Kolom Pencarian -->
-        <div class="relative">
-            <input type="text" id="searchInput" placeholder="Cari banner..." 
-                class="w-full pl-4 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-600">
-            <span class="absolute right-3 top-3 text-gray-400">🔍</span>
-        </div>
-
         <!-- Daftar Banner -->
         <div id="bannerListContainer" class="space-y-3">
             <p id="emptyMessage" class="text-center text-xs text-gray-400 py-8">Belum ada banner di database.</p>
         </div>
     </main>
 
-    <!-- ================= TOMBOL TAMBAH (+) MENGAMBANG ================= -->
-    <div class="fixed bottom-20 right-6 z-40">
-        <button onclick="bukaModalTambah()" class="w-14 h-14 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg flex items-center justify-center text-2xl font-bold transition cursor-pointer">
+    <!-- ================= TOMBOL TAMBAH (+) MENGAMBANG & BISA DIGESER ================= -->
+    <div id="floatingBtn" class="fixed right-6 bottom-20 z-40 cursor-pointer touch-none" title="Tambah Banner Baru">
+        <div class="w-14 h-14 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg flex items-center justify-center text-2xl font-bold transition transform active:scale-95">
             +
-        </button>
+        </div>
     </div>
 
     <!-- ================= MODAL TAMBAH / EDIT BANNER ================= -->
@@ -101,6 +94,21 @@
         </div>
     </div>
 
+    <!-- ================= MODAL KONFIRMASI HAPUS KUSTOM ================= -->
+    <div id="deleteModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-[95] p-4 hidden">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-2xl text-center">
+            <div class="w-12 h-12 bg-red-50 text-red-600 rounded-full flex items-center justify-center text-xl mx-auto shadow-inner">⚠️</div>
+            <div class="space-y-1">
+                <h3 class="font-bold text-sm text-gray-900">Hapus Banner?</h3>
+                <p class="text-xs text-gray-500">Apakah Anda yakin ingin menghapus banner ini dari database?</p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button onclick="tutupModalHapus()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl font-bold transition cursor-pointer text-xs">Batal</button>
+                <button id="btnKonfirmasiHapus" class="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-bold shadow transition cursor-pointer text-xs">Ya, Hapus</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ================= PENAMPUNG NAVIGASI BAWAH OTOMATIS ================= -->
     <div id="appNavigation"></div>
 
@@ -110,13 +118,15 @@
         import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { initNavigation } from "../assets/js/navigation.js";
 
-        // Inisialisasi Navigasi Terpusat (parameter 'lainnya' menandakan menu Lainnya aktif)
+        // Inisialisasi Navigasi Terpusat
         document.addEventListener("DOMContentLoaded", () => {
             initNavigation('lainnya');
             muatDataBanner();
+            initDraggableFAB();
         });
 
         const modalTambah = document.getElementById('modalTambah');
+        const deleteModal = document.getElementById('deleteModal');
         const modalTitle = document.getElementById('modalTitle');
         const bannerForm = document.getElementById('bannerForm');
         const bannerIdInput = document.getElementById('bannerId');
@@ -131,6 +141,7 @@
 
         let base64String = "";
         let existingImageUrl = "";
+        let selectedIdForDelete = null;
 
         function showToast(message) {
             toastMsg.textContent = message;
@@ -140,6 +151,70 @@
                 toast.classList.remove('opacity-100');
                 toast.classList.add('opacity-0', 'pointer-events-none');
             }, 2500);
+        }
+
+        // Fitur Floating Action Button Bisa Digeser (Draggable)
+        function initDraggableFAB() {
+            const fab = document.getElementById('floatingBtn');
+            let isDragging = false;
+            let startX, startY, initialX, initialY;
+
+            fab.addEventListener('click', (e) => {
+                if (!isDragging) {
+                    bukaModalTambah();
+                }
+            });
+
+            const dragStart = (e) => {
+                isDragging = false;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                startX = clientX;
+                startY = clientY;
+                initialX = fab.offsetLeft;
+                initialY = fab.offsetTop;
+
+                document.addEventListener('mousemove', dragMove);
+                document.addEventListener('mouseup', dragEnd);
+                document.addEventListener('touchmove', dragMove);
+                document.addEventListener('touchend', dragEnd);
+            };
+
+            const dragMove = (e) => {
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const dx = clientX - startX;
+                const dy = clientY - startY;
+
+                if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+                    isDragging = true;
+                }
+
+                if (isDragging) {
+                    let newX = initialX + dx;
+                    let newY = initialY + dy;
+                    
+                    const maxX = window.innerWidth - fab.offsetWidth;
+                    const maxY = window.innerHeight - fab.offsetHeight;
+                    newX = Math.max(10, Math.min(newX, maxX - 10));
+                    newY = Math.max(60, Math.min(newY, maxY - 80));
+
+                    fab.style.left = `${newX}px`;
+                    fab.style.top = `${newY}px`;
+                    fab.style.right = 'auto';
+                    fab.style.bottom = 'auto';
+                }
+            };
+
+            const dragEnd = () => {
+                document.removeEventListener('mousemove', dragMove);
+                document.removeEventListener('mouseup', dragEnd);
+                document.removeEventListener('touchmove', dragMove);
+                document.removeEventListener('touchend', dragEnd);
+            };
+
+            fab.addEventListener('mousedown', dragStart);
+            fab.addEventListener('touchstart', dragStart);
         }
 
         window.bukaModalTambah = function() {
@@ -227,18 +302,31 @@
             }
         });
 
-        window.hapusBanner = async function(id) {
-            if (confirm("Apakah Anda yakin ingin menghapus banner ini?")) {
-                try {
-                    await deleteDoc(doc(db, "banner", id));
-                    showToast("🗑️ Banner berhasil dihapus!");
-                    muatDataBanner();
-                } catch (err) {
-                    console.error("Gagal hapus: ", err);
-                    showToast("❌ Gagal menghapus banner!");
-                }
-            }
+        // Modal Kustom Hapus
+        window.bukaModalHapus = function(id) {
+            selectedIdForDelete = id;
+            deleteModal.classList.remove('hidden');
         }
+
+        window.tutupModalHapus = function() {
+            selectedIdForDelete = null;
+            deleteModal.classList.add('hidden');
+        }
+
+        document.getElementById('btnKonfirmasiHapus').addEventListener('click', async () => {
+            if (!selectedIdForDelete) return;
+            const id = selectedIdForDelete;
+            tutupModalHapus();
+
+            try {
+                await deleteDoc(doc(db, "banner", id));
+                showToast("🗑️ Banner berhasil dihapus!");
+                muatDataBanner();
+            } catch (err) {
+                console.error("Gagal hapus: ", err);
+                showToast("❌ Gagal menghapus banner!");
+            }
+        });
 
         window.ubahStatusBanner = async function(id, currentStatus) {
             try {
@@ -291,7 +379,7 @@
                                 <button onclick="bukaModalEdit('${docId}', '${data.nama.replace(/'/g, "\\'")}', '${data.gambar}', ${isActive})" class="px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 text-[11px] font-bold rounded-lg transition cursor-pointer flex items-center gap-1">
                                     ✏️ Edit
                                 </button>
-                                <button onclick="hapusBanner('${docId}')" class="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-bold rounded-lg transition cursor-pointer flex items-center gap-1">
+                                <button onclick="bukaModalHapus('${docId}')" class="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-bold rounded-lg transition cursor-pointer flex items-center gap-1">
                                     🗑️ Hapus
                                 </button>
                             </div>

@@ -95,14 +95,21 @@
                 </button>
 
                 <!-- Menu Dropdown User -->
-                <div id="dropdownMenu" class="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg py-2 hidden z-50">
-                    <div class="px-4 py-2 border-b border-gray-100">
+                <div id="dropdownMenu" class="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg py-2 hidden z-50 divide-y divide-gray-100">
+                    <div class="px-4 py-2">
                         <p class="text-xs text-gray-400">Masuk sebagai:</p>
                         <p id="userEmailDisplay" class="text-xs font-bold text-gray-800 truncate">User</p>
                     </div>
-                    <button id="btnLogout" class="w-full text-left px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 transition flex items-center gap-2 cursor-pointer">
-                        <span>🚪</span> Keluar
-                    </button>
+                    <div class="py-1">
+                        <a href="pages/profil-pelanggan.html" class="w-full text-left px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition flex items-center gap-2">
+                            <span>👤</span> Lengkapi Profil
+                        </a>
+                    </div>
+                    <div class="py-1">
+                        <button id="btnLogout" class="w-full text-left px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 transition flex items-center gap-2 cursor-pointer">
+                            <span>🚪</span> Keluar
+                        </button>
+                    </div>
                 </div>
             </div>
         </header>
@@ -121,12 +128,12 @@
                 <div id="sliderDots" class="flex justify-center space-x-1.5 py-1"></div>
             </div>
 
-            <!-- Running Text CSS Modern -->
+            <!-- Running Text Dinamis dari Database -->
             <div class="bg-white border border-gray-200 rounded-xl shadow-xs py-2 px-3 overflow-hidden flex items-center">
                 <span class="text-red-600 font-bold text-xs mr-2 shrink-0 z-10 bg-white pr-1">📢 INFO:</span>
                 <div class="w-full overflow-hidden relative">
-                    <div class="animate-marquee text-xs font-medium text-gray-700">
-                        Kami buka setiap hari pukul 07.00 – 22.00 WIB. Terima kasih telah berbelanja di Kantin Ku. 🛒 Selamat menikmati hidangan dan pelayanan terbaik kami! ✨
+                    <div id="runningTextContainer" class="animate-marquee text-xs font-medium text-gray-700">
+                        Memuat informasi...
                     </div>
                 </div>
             </div>
@@ -232,6 +239,7 @@
         async function loadDynamicContent() {
             const sliderContainer = document.getElementById('sliderContainer');
             const sliderDots = document.getElementById('sliderDots');
+            const runningTextContainer = document.getElementById('runningTextContainer');
             const promoGridContainer = document.getElementById('promoGridContainer');
 
             const headerNamaWarung = document.getElementById('headerNamaWarung');
@@ -243,6 +251,7 @@
             const dropAlamatWarung = document.getElementById('dropAlamatWarung');
 
             try {
+                // 1. Ambil Profil Toko
                 const tokoRef = doc(db, "toko", "informasi");
                 const tokoSnap = await getDoc(tokoRef);
 
@@ -267,6 +276,7 @@
                     }
                 }
 
+                // 2. Ambil Banner Aktif
                 const bannerQuery = query(collection(db, "banner"), where("status", "==", true));
                 const bannerSnapshot = await getDocs(bannerQuery);
 
@@ -299,7 +309,29 @@
                     sliderContainer.innerHTML = `<div class="slide absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400 text-xs">Belum ada banner aktif</div>`;
                 }
 
-                // Mengambil produk dari koleksi "produk" yang memiliki isPromo == true
+                // 3. Ambil Running Teks Aktif dari Database Firestore
+                const teksQuery = query(collection(db, "running_teks"), where("status", "==", true));
+                const teksSnapshot = await getDocs(teksQuery);
+
+                if (!teksSnapshot.empty && runningTextContainer) {
+                    let teksArray = [];
+                    teksSnapshot.forEach((docSnap) => {
+                        const data = docSnap.data();
+                        if (data.teks) {
+                            teksArray.push(data.teks);
+                        }
+                    });
+
+                    if (teksArray.length > 0) {
+                        runningTextContainer.textContent = teksArray.join(" &nbsp;&nbsp;&bull;&nbsp;&nbsp; ");
+                    } else {
+                        runningTextContainer.textContent = "Selamat datang di Kantin Ku. Nikmati hidangan terbaik kami! ✨";
+                    }
+                } else if (runningTextContainer) {
+                    runningTextContainer.textContent = "Selamat datang di Kantin Ku. Nikmati hidangan terbaik kami! ✨";
+                }
+
+                // 4. Ambil Produk Promo Aktif
                 const promoQuery = query(collection(db, "produk"), where("isPromo", "==", true));
                 const promoSnapshot = await getDocs(promoQuery);
 

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Running Teks - Warungku PWA</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Manifest PWA -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#dc2626">
+    <style>
+        /* Mencegah seleksi teks saat tombol digeser */
+        #draggableBtnContainer {
+            touch-action: none;
+            user-select: none;
+        }
+        /* Menghilangkan scrollbar secara universal */
+        html, body {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col justify-between pb-24 relative select-none">
+
+    <!-- ================= TOAST NOTIFICATION (SMOOTH POPUP) ================= -->
+    <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2">
+        <span id="toastMsg">Pesan berhasil</span>
+    </div>
+
+    <!-- ================= HEADER ATAS ================= -->
+    <header class="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-40">
+        <a href="manajemen.html" class="flex items-center gap-2 text-gray-700 hover:text-red-600 transition font-semibold text-sm cursor-pointer">
+            <span>←</span> Kembali
+        </a>
+        <h1 class="text-sm font-bold text-gray-900">Manajemen Running Teks</h1>
+        <div class="w-12"></div>
+    </header>
+
+    <!-- ================= KONTEN UTAMA ================= -->
+    <main class="p-4 max-w-md mx-auto w-full space-y-4 flex-1">
+        <div class="flex justify-between items-center px-1">
+            <h3 class="font-bold text-sm text-gray-900">💬 Daftar Running Teks Aktif</h3>
+        </div>
+
+        <!-- Daftar Running Teks -->
+        <div id="teksListContainer" class="space-y-3">
+            <p class="text-center text-xs text-gray-400 py-8">Memuat data running teks...</p>
+        </div>
+    </main>
+
+    <!-- ================= TOMBOL TAMBAH (+) MENGAMBANG & BISA DIGESER ================= -->
+    <div id="draggableBtnContainer" class="fixed z-40 cursor-grab active:cursor-grabbing" style="right: 24px; bottom: 80px;" title="Tambah Running Teks Baru">
+        <button id="floatingPlusBtn" class="w-14 h-14 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg flex items-center justify-center text-2xl font-bold transition cursor-pointer pointer-events-none">
+            +
+        </button>
+    </div>
+
+    <!-- ================= MODAL POP-UP (TAMBAH / EDIT TEKS) ================= -->
+    <div id="teksModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-[90] p-4 hidden transition-opacity duration-300">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-2xl relative">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <h3 id="modalTitle" class="font-bold text-sm text-gray-900">➕ Tambah Running Teks</h3>
+                <button onclick="tutupModal()" class="text-gray-400 hover:text-gray-600 font-bold text-sm cursor-pointer">✕</button>
+            </div>
+
+            <form id="teksForm" onsubmit="simpanTeks(event)" class="space-y-3">
+                <input type="hidden" id="teksId">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Isi Running Teks</label>
+                    <textarea id="inputTeks" rows="3" required placeholder="Contoh: 📢 Selamat datang di Kantin Warungku! Nikmati promo spesial hari ini..." class="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-red-600"></textarea>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" id="btnSimpanTeks" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold shadow transition cursor-pointer text-xs flex items-center justify-center gap-2">
+                        <span>💾</span> Simpan Running Teks
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MODAL KONFIRMASI HAPUS KUSTOM ================= -->
+    <div id="deleteModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-[95] p-4 hidden">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-2xl text-center">
+            <div class="w-12 h-12 bg-red-50 text-red-600 rounded-full flex items-center justify-center text-xl mx-auto shadow-inner">⚠️</div>
+            <div class="space-y-1">
+                <h3 class="font-bold text-sm text-gray-900">Hapus Running Teks?</h3>
+                <p class="text-xs text-gray-500">Apakah Anda yakin ingin menghapus teks ini dari database?</p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button onclick="tutupModalHapus()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl font-bold transition cursor-pointer text-xs">Batal</button>
+                <button id="btnKonfirmasiHapus" class="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-bold shadow transition cursor-pointer text-xs">Ya, Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= PENAMPUNG NAVIGASI BAWAH OTOMATIS ================= -->
+    <div id="appNavigation"></div>
+
+    <!-- ================= SCRIPT LOGIKA & FIRESTORE ================= -->
+    <script type="module">
+        import { db } from "../assets/js/firebase-config.js";
+        import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { initNavigation } from "../assets/js/navigation.js";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            initNavigation('lainnya');
+            muatDataTeks();
+            initDraggableFAB();
+        });
+
+        const teksListContainer = document.getElementById('teksListContainer');
+        const teksModal = document.getElementById('teksModal');
+        const deleteModal = document.getElementById('deleteModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const teksIdInput = document.getElementById('teksId');
+        const inputTeks = document.getElementById('inputTeks');
+        const btnSimpanTeks = document.getElementById('btnSimpanTeks');
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toastMsg');
+
+        let selectedIdForDelete = null;
+
+        function showToast(message) {
+            toastMsg.textContent = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+
+        // --- Logika Tombol Geser (Draggable + Simpan Posisi) ---
+        const dragContainer = document.getElementById('draggableBtnContainer');
+        let isDragging = false;
+        let hasMoved = false;
+        let startX, startY, initialX, initialY;
+
+        const savedX = localStorage.getItem('fab_pos_running_x');
+        const savedY = localStorage.getItem('fab_pos_running_y');
+        if (savedX !== null && savedY !== null) {
+            dragContainer.style.right = 'auto';
+            dragContainer.style.bottom = 'auto';
+            dragContainer.style.left = savedX + 'px';
+            dragContainer.style.top = savedY + 'px';
+        }
+
+        function dragStart(e) {
+            isDragging = true;
+            hasMoved = false;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            startX = clientX;
+            startY = clientY;
+            
+            const rect = dragContainer.getBoundingClientRect();
+            initialX = rect.left;
+            initialY = rect.top;
+
+            dragContainer.style.right = 'auto';
+            dragContainer.style.bottom = 'auto';
+        }
+
+        function dragMove(e) {
+            if (!isDragging) return;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            const dx = clientX - startX;
+            const dy = clientY - startY;
+
+            if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+                hasMoved = true;
+            }
+
+            let newX = initialX + dx;
+            let newY = initialY + dy;
+
+            const maxX = window.innerWidth - dragContainer.offsetWidth;
+            const maxY = window.innerHeight - dragContainer.offsetHeight;
+
+            newX = Math.max(0, Math.min(newX, maxX));
+            newY = Math.max(0, Math.min(newY, maxY));
+
+            dragContainer.style.left = newX + 'px';
+            dragContainer.style.top = newY + 'px';
+        }
+
+        function dragEnd() {
+            if (!isDragging) return;
+            isDragging = false;
+
+            if (hasMoved) {
+                const rect = dragContainer.getBoundingClientRect();
+                localStorage.setItem('fab_pos_running_x', rect.left);
+                localStorage.setItem('fab_pos_running_y', rect.top);
+            }
+        }
+
+        dragContainer.addEventListener('mousedown', dragStart);
+        window.addEventListener('mousemove', dragMove);
+        window.addEventListener('mouseup', dragEnd);
+
+        dragContainer.addEventListener('touchstart', dragStart, {passive: true});
+        window.addEventListener('touchmove', dragMove, {passive: true});
+        window.addEventListener('touchend', dragEnd);
+
+        // Klik Tombol Tambah (+)
+        dragContainer.addEventListener('click', (e) => {
+            if (hasMoved) {
+                e.preventDefault();
+                return;
+            }
+            bukaModalTambah();
+        });
+
+        window.bukaModalTambah = function() {
+            modalTitle.textContent = "➕ Tambah Running Teks";
+            teksIdInput.value = "";
+            inputTeks.value = "";
+            teksModal.classList.remove('hidden');
+        }
+
+        window.tutupModal = function() {
+            teksModal.classList.add('hidden');
+        }
+
+        // Simpan atau Edit Running Teks ke Firestore
+        window.simpanTeks = async function(e) {
+            e.preventDefault();
+            const teks = inputTeks.value.trim();
+            const id = teksIdInput.value;
+
+            if (!teks) return;
+
+            btnSimpanTeks.textContent = "Menyimpan...";
+            btnSimpanTeks.disabled = true;
+
+            try {
+                if (id) {
+                    const teksRef = doc(db, "running_teks", id);
+                    await updateDoc(teksRef, { teks });
+                    showToast("✨ Running teks berhasil diperbarui!");
+                } else {
+                    await addDoc(collection(db, "running_teks"), {
+                        teks,
+                        status: true,
+                        createdAt: new Date().toISOString()
+                    });
+                    showToast("🎉 Running teks berhasil disimpan!");
+                }
+
+                tutupModal();
+                muatDataTeks();
+            } catch (err) {
+                console.error("Gagal menyimpan:", err);
+                showToast("❌ Gagal menyimpan data!");
+            } finally {
+                btnSimpanTeks.textContent = "💾 Simpan Running Teks";
+                btnSimpanTeks.disabled = false;
+            }
+        }
+
+        // Muat Data Running Teks dari Firestore
+        async function muatDataTeks() {
+            try {
+                const q = query(collection(db, "running_teks"), orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    teksListContainer.innerHTML = `<p class="text-center text-xs text-gray-400 py-8">Belum ada running teks di database.</p>`;
+                    return;
+                }
+
+                teksListContainer.innerHTML = "";
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const id = docSnap.id;
+                    const isActive = data.status !== false;
+
+                    const card = `
+                        <div class="bg-white p-4 rounded-2xl shadow-xs border border-gray-100 space-y-3">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="space-y-1 flex-1">
+                                    <p class="text-xs font-semibold text-gray-800 leading-relaxed">${data.teks}</p>
+                                    <span class="inline-block text-[10px] px-2 py-0.5 rounded-full ${isActive ? 'bg-green-50 text-green-700 font-bold' : 'bg-gray-100 text-gray-500'}">
+                                        ${isActive ? 'Aktif' : 'Non-aktif'}
+                                    </span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                                    <input type="checkbox" ${isActive ? 'checked' : ''} onchange="ubahStatus('${id}', ${isActive})" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-600"></div>
+                                </label>
+                            </div>
+
+                            <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+                                <button onclick="bukaModalEdit('${id}', '${encodeURIComponent(data.teks)}')" class="px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 text-[11px] font-bold rounded-lg transition cursor-pointer flex items-center gap-1">
+                                    ✏️ Edit
+                                </button>
+                                <button onclick="bukaModalHapus('${id}')" class="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-bold rounded-lg transition cursor-pointer flex items-center gap-1">
+                                    🗑️ Hapus
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    teksListContainer.innerHTML += card;
+                });
+            } catch (err) {
+                console.error("Gagal memuat data:", err);
+                teksListContainer.innerHTML = `<p class="text-center text-xs text-red-500 py-6">Gagal memuat data running teks.</p>`;
+            }
+        }
+
+        // Edit Teks
+        window.bukaModalEdit = function(id, encodedTeks) {
+            modalTitle.textContent = "✏️ Edit Running Teks";
+            teksIdInput.value = id;
+            inputTeks.value = decodeURIComponent(encodedTeks);
+            teksModal.classList.remove('hidden');
+        }
+
+        // Ubah Status Aktif / Non-aktif
+        window.ubahStatus = async function(id, currentStatus) {
+            try {
+                const teksRef = doc(db, "running_teks", id);
+                await updateDoc(teksRef, { status: !currentStatus });
+                showToast("🔄 Status teks berhasil diubah!");
+                muatDataTeks();
+            } catch (err) {
+                console.error("Gagal mengubah status:", err);
+                showToast("❌ Gagal mengubah status!");
+            }
+        }
+
+        // Hapus Data
+        window.bukaModalHapus = function(id) {
+            selectedIdForDelete = id;
+            deleteModal.classList.remove('hidden');
+        }
+
+        window.tutupModalHapus = function() {
+            selectedIdForDelete = null;
+            deleteModal.classList.add('hidden');
+        }
+
+        document.getElementById('btnKonfirmasiHapus').addEventListener('click', async () => {
+            if (!selectedIdForDelete) return;
+            const id = selectedIdForDelete;
+            tutupModalHapus();
+
+            try {
+                await deleteDoc(doc(db, "running_teks", id));
+                showToast("🗑️ Running teks berhasil dihapus!");
+                muatDataTeks();
+            } catch (err) {
+                console.error("Gagal menghapus:", err);
+                showToast("❌ Gagal menghapus data!");
+            }
+        });
+    </script>
+</body>
+</html>

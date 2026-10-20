@@ -20,7 +20,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col justify-between pb-24 relative">
+<body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col justify-between pb-24 relative select-none">
 
     <!-- ================= TOAST NOTIFICATION ================= -->
     <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2">
@@ -38,9 +38,30 @@
 
     <!-- ================= KONTEN UTAMA ================= -->
     <main class="p-4 max-w-md mx-auto w-full space-y-4 flex-1">
-        <!-- Form Tambah/Edit Paket -->
-        <div class="bg-white p-4 rounded-2xl shadow-xs border border-gray-100 space-y-3.5">
-            <h2 id="formTitle" class="text-xs font-bold text-red-600 uppercase tracking-wider">➕ Tambah Paket Baru</h2>
+        <!-- Daftar Paket Tersimpan -->
+        <div class="space-y-3">
+            <h3 class="font-bold text-sm text-gray-900 px-1">📦 Daftar Paketan Aktif</h3>
+            <div id="paketListContainer" class="space-y-3">
+                <p class="text-center text-xs text-gray-400 py-6">Memuat data paket...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- ================= FLOATING ACTION BUTTON (+) BISA DIGESER ================= -->
+    <div id="floatingBtn" class="fixed right-6 bottom-20 z-40 cursor-pointer touch-none" title="Tambah Paket Baru">
+        <div class="w-14 h-14 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg flex items-center justify-center text-2xl font-bold transition transform active:scale-95">
+            +
+        </div>
+    </div>
+
+    <!-- ================= MODAL FORM POP-UP (TAMBAH / EDIT) ================= -->
+    <div id="paketModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-[90] p-4 hidden transition-opacity duration-300">
+        <div class="bg-white w-full max-w-md rounded-3xl p-5 space-y-3.5 shadow-2xl overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <h2 id="formTitle" class="text-xs font-bold text-red-600 uppercase tracking-wider">➕ Tambah Paket Baru</h2>
+                <button onclick="tutupModalPaket()" class="text-gray-400 hover:text-gray-600 font-bold text-sm cursor-pointer">✕</button>
+            </div>
+            
             <input type="hidden" id="paketId">
 
             <!-- Upload Gambar -->
@@ -83,20 +104,27 @@
             </div>
 
             <!-- Tombol Aksi -->
-            <div class="flex gap-2 pt-1">
-                <button id="btnBatal" onclick="resetForm()" class="w-1/3 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer hidden">Batal</button>
+            <div class="flex gap-2 pt-2">
+                <button onclick="tutupModalPaket()" class="w-1/3 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer">Batal</button>
                 <button onclick="simpanPaket()" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-bold text-xs shadow-md transition cursor-pointer">Simpan Paket</button>
             </div>
         </div>
+    </div>
 
-        <!-- Daftar Paket Tersimpan -->
-        <div class="space-y-3">
-            <h3 class="font-bold text-sm text-gray-900 px-1">📦 Daftar Paketan Aktif</h3>
-            <div id="paketListContainer" class="space-y-3">
-                <p class="text-center text-xs text-gray-400 py-6">Memuat data paket...</p>
+    <!-- ================= MODAL KONFIRMASI HAPUS KUSTOM ================= -->
+    <div id="deleteModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-[95] p-4 hidden">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-2xl text-center">
+            <div class="w-12 h-12 bg-red-50 text-red-600 rounded-full flex items-center justify-center text-xl mx-auto shadow-inner">⚠️</div>
+            <div class="space-y-1">
+                <h3 class="font-bold text-sm text-gray-900">Hapus Paket?</h3>
+                <p class="text-xs text-gray-500">Apakah Anda yakin ingin menghapus paket ini dari database?</p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button onclick="tutupModalHapus()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl font-bold transition cursor-pointer text-xs">Batal</button>
+                <button id="btnKonfirmasiHapus" class="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-bold shadow transition cursor-pointer text-xs">Ya, Hapus</button>
             </div>
         </div>
-    </main>
+    </div>
 
     <!-- ================= PENAMPUNG NAVIGASI BAWAH OTOMATIS ================= -->
     <div id="appNavigation"></div>
@@ -107,10 +135,10 @@
         import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { initNavigation } from "../assets/js/navigation.js";
 
-        // Inisialisasi Navigasi Terpusat (parameter 'lainnya' menandakan menu Lainnya aktif)
         document.addEventListener("DOMContentLoaded", () => {
             initNavigation('lainnya');
             muatDataPaket();
+            initDraggableFAB();
         });
 
         const paketListContainer = document.getElementById('paketListContainer');
@@ -123,11 +151,13 @@
         const inputMasaBerlaku = document.getElementById('inputMasaBerlaku');
         const paketId = document.getElementById('paketId');
         const formTitle = document.getElementById('formTitle');
-        const btnBatal = document.getElementById('btnBatal');
+        const paketModal = document.getElementById('paketModal');
+        const deleteModal = document.getElementById('deleteModal');
         const toast = document.getElementById('toast');
         const toastMsg = document.getElementById('toastMsg');
 
         let base64Image = "";
+        let selectedIdForDelete = null;
 
         function showToast(message) {
             toastMsg.textContent = message;
@@ -137,6 +167,82 @@
                 toast.classList.remove('opacity-100');
                 toast.classList.add('opacity-0', 'pointer-events-none');
             }, 2000);
+        }
+
+        // Fitur Floating Action Button Bisa Digeser (Draggable)
+        function initDraggableFAB() {
+            const fab = document.getElementById('floatingBtn');
+            let isDragging = false;
+            let startX, startY, initialX, initialY;
+
+            fab.addEventListener('click', (e) => {
+                // Hanya buka modal jika tidak sedang digeser
+                if (!isDragging) {
+                    bukaModalTambah();
+                }
+            });
+
+            const dragStart = (e) => {
+                isDragging = false;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                startX = clientX;
+                startY = clientY;
+                initialX = fab.offsetLeft;
+                initialY = fab.offsetTop;
+
+                document.addEventListener('mousemove', dragMove);
+                document.addEventListener('mouseup', dragEnd);
+                document.addEventListener('touchmove', dragMove);
+                document.addEventListener('touchend', dragEnd);
+            };
+
+            const dragMove = (e) => {
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const dx = clientX - startX;
+                const dy = clientY - startY;
+
+                if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+                    isDragging = true;
+                }
+
+                if (isDragging) {
+                    let newX = initialX + dx;
+                    let newY = initialY + dy;
+                    
+                    // Batasi agar tidak keluar layar
+                    const maxX = window.innerWidth - fab.offsetWidth;
+                    const maxY = window.innerHeight - fab.offsetHeight;
+                    newX = Math.max(10, Math.min(newX, maxX - 10));
+                    newY = Math.max(60, Math.min(newY, maxY - 80));
+
+                    fab.style.left = `${newX}px`;
+                    fab.style.top = `${newY}px`;
+                    fab.style.right = 'auto';
+                    fab.style.bottom = 'auto';
+                }
+            };
+
+            const dragEnd = () => {
+                document.removeEventListener('mousemove', dragMove);
+                document.removeEventListener('mouseup', dragEnd);
+                document.removeEventListener('touchmove', dragMove);
+                document.removeEventListener('touchend', dragEnd);
+            };
+
+            fab.addEventListener('mousedown', dragStart);
+            fab.addEventListener('touchstart', dragStart);
+        }
+
+        window.bukaModalTambah = function() {
+            resetForm();
+            formTitle.textContent = "➕ Tambah Paket Baru";
+            paketModal.classList.remove('hidden');
+        }
+
+        window.tutupModalPaket = function() {
+            paketModal.classList.add('hidden');
         }
 
         // Format angka otomatis jadi ribuan saat diketik
@@ -197,7 +303,7 @@
             reader.readAsDataURL(file);
         });
 
-        window.resetForm = function() {
+        function resetForm() {
             paketId.value = "";
             inputNama.value = "";
             inputDeskripsi.value = "";
@@ -208,15 +314,13 @@
             imgPreview.src = "";
             imgPreview.classList.add('hidden');
             placeholderIcon.classList.remove('hidden');
-            formTitle.textContent = "➕ Tambah Paket Baru";
-            btnBatal.classList.add('hidden');
         }
 
         // Simpan atau Update Paket ke Firestore
         window.simpanPaket = async function() {
             const nama = inputNama.value.trim();
             const deskripsi = inputDeskripsi.value.trim();
-            const rawHarga = inputHarga.value.replace(/\./g, ''); // Hilangkan titik ribuan sebelum simpan
+            const rawHarga = inputHarga.value.replace(/\./g, '');
             const masaBerlaku = inputMasaBerlaku.value;
             const id = paketId.value;
 
@@ -252,6 +356,7 @@
                     showToast("🎉 Paket baru berhasil disimpan!");
                 }
 
+                tutupModalPaket();
                 resetForm();
                 muatDataPaket();
             } catch (err) {
@@ -288,7 +393,7 @@
                             </div>
                             <div class="flex flex-col gap-1.5">
                                 <button onclick="editPaket('${id}', '${encodeURIComponent(data.nama)}', '${encodeURIComponent(data.deskripsi || '')}', '${data.harga}', '${data.masaBerlaku}', '${encodeURIComponent(data.gambar || '')}')" class="bg-blue-50 text-blue-600 hover:bg-blue-100 p-2 rounded-xl text-xs font-bold transition cursor-pointer" title="Edit">✏️</button>
-                                <button onclick="hapusPaket('${id}')" class="bg-red-50 text-red-600 hover:bg-red-100 p-2 rounded-xl text-xs font-bold transition cursor-pointer" title="Hapus">🗑️</button>
+                                <button onclick="bukaModalHapus('${id}')" class="bg-red-50 text-red-600 hover:bg-red-100 p-2 rounded-xl text-xs font-bold transition cursor-pointer" title="Hapus">🗑️</button>
                             </div>
                         </div>
                     `;
@@ -302,13 +407,13 @@
 
         // Edit Paket
         window.editPaket = function(id, nama, deskripsi, harga, masaBerlaku, gambar) {
+            resetForm();
             paketId.value = id;
             inputNama.value = decodeURIComponent(nama);
             inputDeskripsi.value = decodeURIComponent(deskripsi);
             
             let formattedEditHarga = Number(harga).toLocaleString('id-ID');
             inputHarga.value = formattedEditHarga;
-            
             inputMasaBerlaku.value = masaBerlaku;
             
             if (gambar) {
@@ -319,23 +424,34 @@
             }
 
             formTitle.textContent = "✏️ Edit Paket Makanan";
-            btnBatal.classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            paketModal.classList.remove('hidden');
         }
 
-        // Hapus Paket
-        window.hapusPaket = async function(id) {
-            if (confirm("Apakah Anda yakin ingin menghapus paket ini?")) {
-                try {
-                    await deleteDoc(doc(db, "paketan", id));
-                    showToast("🗑️ Paket berhasil dihapus!");
-                    muatDataPaket();
-                } catch (err) {
-                    console.error("Gagal menghapus paket:", err);
-                    showToast("❌ Gagal menghapus paket!");
-                }
-            }
+        // Hapus Paket (Modal Kustom)
+        window.bukaModalHapus = function(id) {
+            selectedIdForDelete = id;
+            deleteModal.classList.remove('hidden');
         }
+
+        window.tutupModalHapus = function() {
+            selectedIdForDelete = null;
+            deleteModal.classList.add('hidden');
+        }
+
+        document.getElementById('btnKonfirmasiHapus').addEventListener('click', async () => {
+            if (!selectedIdForDelete) return;
+            const id = selectedIdForDelete;
+            tutupModalHapus();
+
+            try {
+                await deleteDoc(doc(db, "paketan", id));
+                showToast("🗑️ Paket berhasil dihapus!");
+                muatDataPaket();
+            } catch (err) {
+                console.error("Gagal menghapus paket:", err);
+                showToast("❌ Gagal menghapus paket!");
+            }
+        });
     </script>
 </body>
 </html>

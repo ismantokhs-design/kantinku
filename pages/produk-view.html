@@ -114,7 +114,7 @@
         import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { initNavigation } from "../assets/js/navigation.js";
 
-        // Inisialisasi Navigasi Terpusat (parameter 'produk' menandakan menu produk aktif jika ada, atau sesuaikan)
+        // Inisialisasi Navigasi Terpusat
         document.addEventListener("DOMContentLoaded", () => {
             initNavigation('produk');
             muatDataProduk();
@@ -149,14 +149,6 @@
         let daftarMenu = [];
         let kategoriAktif = "Semua";
 
-        const dummyProduk = [
-            { id: "d1", kode: "MKN1", nama: "Nasi Goreng Spesial", kategori: "Makanan", harga: "20.000", hargaCoret: "25.000", stok: 15, gambar: "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=300&q=80" },
-            { id: "d2", kode: "MKN2", nama: "Ayam Geprek Sambal Matah", kategori: "Makanan", harga: "18.000", hargaCoret: "22.000", stok: 10, gambar: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=300&q=80" },
-            { id: "d3", kode: "MNM1", nama: "Es Teh Manis Segar", kategori: "Minuman", harga: "5.000", hargaCoret: "7.000", stok: 30, gambar: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=300&q=80" },
-            { id: "d4", kode: "MNM2", nama: "Jus Alpukat Keren", kategori: "Minuman", harga: "12.000", hargaCoret: "15.000", stok: 8, gambar: "https://images.unsplash.com/photo-1595981267035-7b04ca84a82d?auto=format&fit=crop&w=300&q=80" },
-            { id: "d5", kode: "CML1", nama: "Kentang Goreng Krispi", kategori: "Camilan", harga: "10.000", hargaCoret: "13.000", stok: 12, gambar: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=300&q=80" }
-        ];
-
         async function muatDataProduk() {
             try {
                 const produkSnap = await getDocs(collection(db, "produk"));
@@ -165,14 +157,10 @@
                     daftarMenu.push({ id: docSnap.id, ...docSnap.data() });
                 });
 
-                if (daftarMenu.length === 0) {
-                    daftarMenu = dummyProduk;
-                }
-
                 filterProduk();
             } catch (err) {
-                console.warn("Gagal memuat dari Firestore, menggunakan data dummy: ", err);
-                daftarMenu = dummyProduk;
+                console.warn("Gagal memuat dari Firestore: ", err);
+                daftarMenu = [];
                 filterProduk();
             }
         }
@@ -204,22 +192,26 @@
 
             let html = "";
             items.forEach((item) => {
-                const hargaNorm = item.harga || '0';
-                const hargaCoret = item.hargaCoret ? `Rp ${item.hargaCoret}` : '';
-                const stok = item.stok !== undefined ? item.stok : 0;
+                let hargaTampil = "Belum ada harga";
+                if (item.harga !== undefined && item.harga !== null && item.harga !== "") {
+                    hargaTampil = `Rp ${item.harga}`;
+                }
+
+                const hargaCoret = (item.hargaCoret !== undefined && item.hargaCoret !== null && item.hargaCoret !== "") ? `Rp ${item.hargaCoret}` : '';
+                let stokTampil = (item.stok !== undefined && item.stok !== null && item.stok !== "") ? item.stok : "-";
 
                 html += `
                     <div class="bg-white p-3.5 rounded-2xl shadow-xs border border-gray-100 flex items-center justify-between gap-3">
-                        <div class="w-20 h-20 bg-gray-100 rounded-xl overflow-hidden shrink-0 cursor-pointer relative" onclick="openImageZoom('${item.gambar || ''}', '${item.nama}')">
-                            <img src="${item.gambar || 'https://via.placeholder.com/150'}" alt="${item.nama}" class="w-full h-full object-cover">
+                        <div class="w-20 h-20 bg-gray-100 rounded-xl overflow-hidden shrink-0 cursor-pointer relative" onclick="openImageZoom('${item.gambar || ''}', '${item.nama || ''}')">
+                            <img src="${item.gambar || 'https://via.placeholder.com/150'}" alt="${item.nama || 'Produk'}" class="w-full h-full object-cover">
                         </div>
                         <div class="flex-1 min-w-0 space-y-1">
-                            <h4 class="text-xs font-bold text-gray-900 truncate">${item.kode ? item.kode + ' - ' : ''}${item.nama}</h4>
+                            <h4 class="text-xs font-bold text-gray-900 truncate">${item.kode ? item.kode + ' - ' : ''}${item.nama || 'Tanpa Nama'}</h4>
                             <div class="text-xs font-semibold">
-                                <span class="text-gray-900">Rp ${hargaNorm}</span>
+                                <span class="text-gray-900">${hargaTampil}</span>
                                 ${hargaCoret ? `<span class="text-amber-600 ml-1 font-bold">/ ${hargaCoret}</span>` : ''}
                             </div>
-                            <p class="text-[11px] ${stok > 0 ? 'text-green-600' : 'text-red-600'} font-bold">Stok Tersedia: ${stok}</p>
+                            <p class="text-[11px] text-red-600 font-bold">Stok Tersedia: ${stokTampil}</p>
                             <span class="inline-block bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded-md font-medium">${item.kategori || 'Umum'}</span>
                         </div>
                     </div>
@@ -232,11 +224,13 @@
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             
             const filtered = daftarMenu.filter(item => {
-                const matchKeyword = (item.nama && item.nama.toLowerCase().includes(keyword)) || 
-                                     (item.kode && item.kode.toLowerCase().includes(keyword));
+                const namaProduk = item.nama ? item.nama.toLowerCase() : "";
+                const kodeProduk = item.kode ? item.kode.toLowerCase() : "";
+                
+                const matchKeyword = namaProduk.includes(keyword) || kodeProduk.includes(keyword);
                 
                 const matchKategori = (kategoriAktif === 'Semua') || 
-                                      (item.kategori && item.kategori.toLowerCase() === kategoriAktif.toLowerCase());
+                                     (item.kategori && item.kategori.toLowerCase() === kategoriAktif.toLowerCase());
 
                 return matchKeyword && matchKategori;
             });

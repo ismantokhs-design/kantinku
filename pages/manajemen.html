@@ -26,14 +26,6 @@
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col justify-between pb-24 relative overflow-x-hidden">
 
-    <!-- ================= CEK OTENTIKASI LOKAL PERMANEN ================= -->
-    <script>
-        const isLoggedIn = localStorage.getItem('kantin_logged_in');
-        if (!isLoggedIn) {
-            window.location.replace('../login.html');
-        }
-    </script>
-
     <!-- ================= HEADER ATAS ================= -->
     <header class="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-40">
         <a href="../index.html" class="flex items-center gap-2 text-gray-700 hover:text-red-600 transition font-semibold text-sm cursor-pointer">
@@ -59,12 +51,12 @@
                 <span class="text-xs font-bold text-gray-800">Manajemen Promo</span>
             </a>
 
-            <!-- 2. Profil Toko -->
-            <a href="#" onclick="bukaModul('Profil Toko')" class="bg-white p-5 rounded-2xl shadow-xs border border-gray-100 hover:border-red-500 hover:shadow-md transition flex flex-col items-center text-center space-y-3 group cursor-pointer">
+            <!-- 2. Running Teks -->
+            <a href="#" onclick="bukaModul('Running Teks')" class="bg-white p-5 rounded-2xl shadow-xs border border-gray-100 hover:border-red-500 hover:shadow-md transition flex flex-col items-center text-center space-y-3 group cursor-pointer">
                 <div class="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-xl group-hover:bg-red-600 group-hover:text-white transition">
-                    ⚙️
+                    💬
                 </div>
-                <span class="text-xs font-bold text-gray-800">Profil Toko</span>
+                <span class="text-xs font-bold text-gray-800">Running Teks</span>
             </a>
 
             <!-- 3. Paketan -->
@@ -91,12 +83,12 @@
                 <span class="text-xs font-bold text-gray-800">Kelola Lokasi</span>
             </a>
 
-            <!-- 6. Produk -->
-            <a href="#" onclick="bukaModul('Produk')" class="bg-white p-5 rounded-2xl shadow-xs border border-gray-100 hover:border-red-500 hover:shadow-md transition flex flex-col items-center text-center space-y-3 group cursor-pointer">
+            <!-- 6. Pelanggan -->
+            <a href="#" onclick="bukaModul('Pelanggan')" class="bg-white p-5 rounded-2xl shadow-xs border border-gray-100 hover:border-red-500 hover:shadow-md transition flex flex-col items-center text-center space-y-3 group cursor-pointer">
                 <div class="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-xl group-hover:bg-red-600 group-hover:text-white transition">
-                    📦
+                    👥
                 </div>
-                <span class="text-xs font-bold text-gray-800">Produk</span>
+                <span class="text-xs font-bold text-gray-800">Pelanggan</span>
             </a>
         </div>
     </main>
@@ -127,10 +119,10 @@
                 window.location.href = 'promo.html';
             } else if (namaMenu === 'Paketan') {
                 window.location.href = 'paketan.html';
-            } else if (namaMenu === 'Profil Toko') {
-                window.location.href = 'profil.html';
-            } else if (namaMenu === 'Produk') {
-                window.location.href = 'produk.html';
+            } else if (namaMenu === 'Running Teks') {
+                window.location.href = 'running-teks.html';
+            } else if (namaMenu === 'Pelanggan') {
+                window.location.href = 'pelanggan.html';
             } else {
                 alert("Membuka halaman pengaturan untuk: " + namaMenu);
             }
