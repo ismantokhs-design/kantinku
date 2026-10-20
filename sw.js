@@ -1,35 +1,38 @@
-const CACHE_NAME = 'kantin-ku-v5';
+const CACHE_NAME = 'kantin-ku-v7'; // Naikan versinya jadi v7
 const ASSETS_TO_CACHE = [
     './index.html',
     './login.html',
     './manifest.json',
-    './pages/promo.html',
+    './pages/pesan.html',
+    './pages/paketan-view.html',
+    './pages/produk-view.html',
     './pages/manajemen.html',
     './pages/banner.html',
-    './pages/profil.html'
+    './pages/profil.html',
+    './pages/produk.html',
+    './pages/pesan-order.html',
+    './pages/promo.html',
+    './assets/js/navigation.js',
+    './assets/js/firebase-config.js'
 ];
 
-// 1. Install Service Worker & Cache Aset Dasar
+// Install & Cache
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
-            console.log('Membuka cache baru...');
-            return cache.addAll(ASSETS_TO_CACHE).catch(err => {
-                console.warn('Sebagian aset gagal dicache saat install:', err);
-            });
+            return cache.addAll(ASSETS_TO_CACHE);
         })
     );
     self.skipWaiting();
 });
 
-// 2. Activate Service Worker & Bersihkan Cache Lama
+// Activate & Hapus Cache Lama
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((cacheNames) => {
             return Promise.all(
                 cacheNames.map((cache) => {
                     if (cache !== CACHE_NAME) {
-                        console.log('Menghapus cache lama:', cache);
                         return caches.delete(cache);
                     }
                 })
@@ -39,11 +42,9 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
-// 3. Fetch Strategy: Network First (Utamakan Jaringan, Fallback ke Cache)
+// Fetch Strategy
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
-
-    // Abaikan permintaan ke Firestore atau API eksternal lainnya
     if (url.origin !== self.location.origin || url.pathname.includes('firestore.googleapis.com')) {
         return;
     }
@@ -51,19 +52,16 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
         fetch(event.request)
             .then((networkResponse) => {
-                // Jika jaringan berhasil, simpan salinannya ke cache lalu kembalikan responsnya
                 return caches.open(CACHE_NAME).then((cache) => {
                     cache.put(event.request, networkResponse.clone());
                     return networkResponse;
                 });
             })
             .catch(() => {
-                // Jika offline atau jaringan gagal, ambil dari cache
                 return caches.match(event.request).then((cachedResponse) => {
                     if (cachedResponse) {
                         return cachedResponse;
                     }
-                    // Jika halaman utama/navigate gagal dan tidak ada di cache, arahkan aman ke index atau login
                     if (event.request.mode === 'navigate') {
                         return caches.match('./index.html');
                     }

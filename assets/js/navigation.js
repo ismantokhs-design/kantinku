@@ -2,14 +2,18 @@
 export function initNavigation(activePage = '') {
     const isAdmin = true;
 
-    const homeHref = '/index.html';
-    const paketanHref = '/pages/paketan-view.html';
-    const pesanHref = '/pages/pesan.html';
-    const produkHref = '/pages/produk-view.html';
-    const profilHref = '/pages/profil.html';
-    const manajemenHref = '/pages/manajemen.html';
-    const produkAdminHref = '/pages/produk.html';
-    const pesanOrderHref = '/pages/pesan-order.html';
+    // Deteksi otomatis apakah file saat ini berada di dalam folder /pages/ atau di root utama
+    const isInPages = window.location.pathname.includes('/pages/');
+
+    // Penentuan path dinamis agar tidak pernah salah atau dobel folder (pages/pages)
+    const homeHref       = isInPages ? '../index.html' : './index.html';
+    const paketanHref    = isInPages ? './paketan-view.html' : './pages/paketan-view.html';
+    const pesanHref      = isInPages ? './pesan.html' : './pages/pesan.html';
+    const produkHref     = isInPages ? './produk-view.html' : './pages/produk-view.html';
+    const profilHref     = isInPages ? './profil.html' : './pages/profil.html';
+    const manajemenHref  = isInPages ? './manajemen.html' : './pages/manajemen.html';
+    const produkAdminHref = isInPages ? './produk.html' : './pages/produk.html';
+    const pesanOrderHref = isInPages ? './pesan-order.html' : './pages/pesan-order.html';
 
     const navContainer = document.getElementById('appNavigation');
     if (!navContainer) return;
