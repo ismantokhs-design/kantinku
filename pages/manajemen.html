@@ -4,26 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pengaturan & Manajemen - Warungku PWA</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Tailwind CSS CDN Stabil -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Manifest PWA -->
     <link rel="manifest" href="../manifest.json">
     <meta name="theme-color" content="#dc2626">
+    <style>
+        /* Mencegah seleksi teks saat tombol digeser */
+        #draggableBtnContainer {
+            touch-action: none;
+            user-select: none;
+        }
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        body, html {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
 </head>
-<body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col justify-between pb-24">
+<body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col justify-between pb-24 relative overflow-x-hidden">
+
+    <!-- ================= CEK OTENTIKASI LOKAL PERMANEN ================= -->
+    <script>
+        const isLoggedIn = localStorage.getItem('kantin_logged_in');
+        if (!isLoggedIn) {
+            window.location.replace('../login.html');
+        }
+    </script>
 
     <!-- ================= HEADER ATAS ================= -->
     <header class="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-40">
-        <a href="../index.html" class="flex items-center gap-2 text-gray-700 hover:text-red-600 transition font-semibold text-sm">
+        <a href="../index.html" class="flex items-center gap-2 text-gray-700 hover:text-red-600 transition font-semibold text-sm cursor-pointer">
             <span>←</span> Beranda
         </a>
-        <div class="inline-flex items-center border-2 border-red-600 rounded-full px-3 py-1">
-            <div class="w-5 h-5 bg-blue-900 rounded-full flex items-center justify-center text-white font-bold text-xs mr-1">W</div>
-            <div class="text-left leading-tight">
-                <span class="block text-[9px] font-semibold text-black tracking-wider uppercase">APLIKASI</span>
-                <span class="block text-sm font-black text-red-600 leading-none">warungku</span>
-            </div>
-        </div>
     </header>
 
     <!-- ================= KONTEN UTAMA: PENGATURAN & MANAJEMEN ================= -->
@@ -36,7 +51,7 @@
 
         <!-- Grid Menu Pilihan (2 Kolom) -->
         <div class="grid grid-cols-2 gap-4">
-            <!-- 1. Manajemen Promo (Diatur menuju ke promo.html) -->
+            <!-- 1. Manajemen Promo -->
             <a href="#" onclick="bukaModul('Manajemen Promo')" class="bg-white p-5 rounded-2xl shadow-xs border border-gray-100 hover:border-red-500 hover:shadow-md transition flex flex-col items-center text-center space-y-3 group cursor-pointer">
                 <div class="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-xl group-hover:bg-red-600 group-hover:text-white transition">
                     🏷️
@@ -44,23 +59,23 @@
                 <span class="text-xs font-bold text-gray-800">Manajemen Promo</span>
             </a>
 
-            <!-- 2. Manajemen Event -->
-            <a href="#" onclick="bukaModul('Manajemen Event')" class="bg-white p-5 rounded-2xl shadow-xs border border-gray-100 hover:border-red-500 hover:shadow-md transition flex flex-col items-center text-center space-y-3 group cursor-pointer">
+            <!-- 2. Profil Toko -->
+            <a href="#" onclick="bukaModul('Profil Toko')" class="bg-white p-5 rounded-2xl shadow-xs border border-gray-100 hover:border-red-500 hover:shadow-md transition flex flex-col items-center text-center space-y-3 group cursor-pointer">
                 <div class="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-xl group-hover:bg-red-600 group-hover:text-white transition">
-                    📅
+                    ⚙️
                 </div>
-                <span class="text-xs font-bold text-gray-800">Manajemen Event</span>
+                <span class="text-xs font-bold text-gray-800">Profil Toko</span>
             </a>
 
-            <!-- 3. Produk -->
-            <a href="#" onclick="bukaModul('Produk')" class="bg-white p-5 rounded-2xl shadow-xs border border-gray-100 hover:border-red-500 hover:shadow-md transition flex flex-col items-center text-center space-y-3 group cursor-pointer">
+            <!-- 3. Paketan -->
+            <a href="#" onclick="bukaModul('Paketan')" class="bg-white p-5 rounded-2xl shadow-xs border border-gray-100 hover:border-red-500 hover:shadow-md transition flex flex-col items-center text-center space-y-3 group cursor-pointer">
                 <div class="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-xl group-hover:bg-red-600 group-hover:text-white transition">
-                    📦
+                    🎁
                 </div>
-                <span class="text-xs font-bold text-gray-800">Produk</span>
+                <span class="text-xs font-bold text-gray-800">Paketan</span>
             </a>
 
-            <!-- 4. Banner (Diatur menuju ke banner.html) -->
+            <!-- 4. Banner -->
             <a href="#" onclick="bukaModul('Banner')" class="bg-white p-5 rounded-2xl shadow-xs border border-gray-100 hover:border-red-500 hover:shadow-md transition flex flex-col items-center text-center space-y-3 group cursor-pointer">
                 <div class="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-xl group-hover:bg-red-600 group-hover:text-white transition">
                     🖼️
@@ -76,111 +91,141 @@
                 <span class="text-xs font-bold text-gray-800">Kelola Lokasi</span>
             </a>
 
-            <!-- 6. Running Text -->
-            <a href="#" onclick="bukaModul('Running Text')" class="bg-white p-5 rounded-2xl shadow-xs border border-gray-100 hover:border-red-500 hover:shadow-md transition flex flex-col items-center text-center space-y-3 group cursor-pointer">
+            <!-- 6. Produk -->
+            <a href="#" onclick="bukaModul('Produk')" class="bg-white p-5 rounded-2xl shadow-xs border border-gray-100 hover:border-red-500 hover:shadow-md transition flex flex-col items-center text-center space-y-3 group cursor-pointer">
                 <div class="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-xl group-hover:bg-red-600 group-hover:text-white transition">
-                    ≡
+                    📦
                 </div>
-                <span class="text-xs font-bold text-gray-800">Running Text</span>
+                <span class="text-xs font-bold text-gray-800">Produk</span>
             </a>
         </div>
     </main>
 
-    <!-- ================= TOMBOL TAMBAH (+) MENGAMBANG ================= -->
-    <div class="fixed bottom-20 right-6 z-40">
-        <button onclick="bukaFormTambah()" class="w-14 h-14 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg flex items-center justify-center text-2xl font-bold transition cursor-pointer">
+    <!-- ================= TOMBOL TAMBAH (+) BISA DIGESER (DRAGGABLE) ================= -->
+    <div id="draggableBtnContainer" class="fixed z-40 cursor-grab active:cursor-grabbing" style="right: 24px; bottom: 80px;">
+        <button id="floatingPlusBtn" class="w-14 h-14 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg flex items-center justify-center text-2xl font-bold transition cursor-pointer" title="Tambah Paketan">
             +
         </button>
     </div>
 
-    <!-- ================= NAVIGASI BAWAH (BOTTOM NAVIGATION) ================= -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4 flex justify-around items-center z-50 max-w-md mx-auto">
-        <a href="../index.html" class="flex flex-col items-center text-gray-400 text-xs font-medium">
-            <span class="text-lg">🏠</span>
-            <span>Beranda</span>
-        </a>
-        <a href="#" class="flex flex-col items-center text-gray-400 text-xs font-medium">
-            <span class="text-lg">🏷️</span>
-            <span>Promo</span>
-        </a>
-        <a href="#" class="flex flex-col items-center text-gray-400 text-xs font-medium">
-            <span class="text-lg">📢</span>
-            <span>Broadcast</span>
-        </a>
-        <a href="#" class="flex flex-col items-center text-gray-400 text-xs font-medium">
-            <span class="text-lg">📅</span>
-            <span>Event</span>
-        </a>
-        <!-- Tombol Lainnya -->
-        <button id="btnLainnya" class="flex flex-col items-center text-red-600 text-xs font-semibold bg-transparent border-none cursor-pointer focus:outline-none">
-            <span class="text-lg">☰</span>
-            <span>Lainnya</span>
-        </button>
-    </nav>
+    <!-- ================= PENAMPUNG NAVIGASI BAWAH OTOMATIS ================= -->
+    <div id="appNavigation"></div>
 
-    <!-- ================= OPTION MENU (POP-UP) ================= -->
-    <div id="optionMenuModal" class="fixed inset-0 bg-black/30 flex items-end justify-end pb-16 pr-4 z-50 hidden">
-        <div class="bg-white text-gray-800 w-52 rounded-2xl shadow-xl overflow-hidden border border-gray-200">
-            <div class="bg-red-600 text-white px-4 py-2.5 flex justify-between items-center">
-                <span class="font-bold tracking-wider text-xs uppercase">OPTION MENU</span>
-                <button id="btnCloseOption" class="text-white hover:text-gray-200 font-bold text-sm cursor-pointer">✕</button>
-            </div>
-            <div class="py-1 divide-y divide-gray-100 text-xs font-medium">
-                <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-gray-700">
-                    <span class="text-red-600 text-base">⚙️</span>
-                    <span>Pengaturan</span>
-                </a>
-                <a href="manajemen.html" class="flex items-center gap-3 px-4 py-3 bg-red-50 text-red-600 font-bold transition">
-                    <span class="text-base">🏷️</span>
-                    <span>Manajemen</span>
-                </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-gray-700">
-                    <span class="text-red-600 text-base">📅</span>
-                    <span>Event</span>
-                </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-gray-700">
-                    <span class="text-red-600 text-base">📦</span>
-                    <span>Lihat Pesanan</span>
-                </a>
-            </div>
-        </div>
-    </div>
+    <!-- ================= SCRIPT INTERAKSI & DRAGGABLE ================= -->
+    <script type="module">
+        import { initNavigation } from "../assets/js/navigation.js";
 
-    <!-- ================= SCRIPT INTERAKSI ================= -->
-    <script>
-        const btnLainnya = document.getElementById('btnLainnya');
-        const optionMenuModal = document.getElementById('optionMenuModal');
-        const btnCloseOption = document.getElementById('btnCloseOption');
-
-        btnLainnya.addEventListener('click', (e) => {
-            e.stopPropagation();
-            optionMenuModal.classList.remove('hidden');
+        // Inisialisasi Navigasi Terpusat (parameter 'lainnya' menandakan menu Lainnya aktif)
+        document.addEventListener("DOMContentLoaded", () => {
+            initNavigation('lainnya');
         });
 
-        btnCloseOption.addEventListener('click', () => {
-            optionMenuModal.classList.add('hidden');
-        });
-
-        window.addEventListener('click', (e) => {
-            if (e.target === optionMenuModal) {
-                optionMenuModal.classList.add('hidden');
-            }
-        });
-
-        function bukaModul(namaMenu) {
+        window.bukaModul = function(namaMenu) {
             if (namaMenu === 'Banner') {
                 window.location.href = 'banner.html';
             } else if (namaMenu === 'Manajemen Promo') {
                 window.location.href = 'promo.html';
+            } else if (namaMenu === 'Paketan') {
+                window.location.href = 'paketan.html';
+            } else if (namaMenu === 'Profil Toko') {
+                window.location.href = 'profil.html';
+            } else if (namaMenu === 'Produk') {
+                window.location.href = 'produk.html';
             } else {
                 alert("Membuka halaman pengaturan untuk: " + namaMenu);
             }
+        };
+
+        // --- Logika Tombol Geser (Draggable + Simpan Posisi) ---
+        const dragContainer = document.getElementById('draggableBtnContainer');
+        const floatingPlusBtn = document.getElementById('floatingPlusBtn');
+
+        let isDragging = false;
+        let hasMoved = false;
+        let startX, startY, initialX, initialY;
+
+        // Muat posisi tersimpan di localStorage jika ada
+        const savedX = localStorage.getItem('fab_pos_x');
+        const savedY = localStorage.getItem('fab_pos_y');
+        if (savedX !== null && savedY !== null) {
+            dragContainer.style.right = 'auto';
+            dragContainer.style.bottom = 'auto';
+            dragContainer.style.left = savedX + 'px';
+            dragContainer.style.top = savedY + 'px';
         }
 
-        function bukaFormTambah() {
-            // Tombol melayang (+) diarahkan ke promo.html (atau sesuaikan jika ingin ke banner.html)
-            window.location.href = 'promo.html';
+        function dragStart(e) {
+            isDragging = true;
+            hasMoved = false;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            startX = clientX;
+            startY = clientY;
+            
+            const rect = dragContainer.getBoundingClientRect();
+            initialX = rect.left;
+            initialY = rect.top;
+
+            dragContainer.style.right = 'auto';
+            dragContainer.style.bottom = 'auto';
         }
+
+        function dragMove(e) {
+            if (!isDragging) return;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            const dx = clientX - startX;
+            const dy = clientY - startY;
+
+            if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+                hasMoved = true;
+            }
+
+            let newX = initialX + dx;
+            let newY = initialY + dy;
+
+            // Batasi agar tombol tidak keluar layar
+            const maxX = window.innerWidth - dragContainer.offsetWidth;
+            const maxY = window.innerHeight - dragContainer.offsetHeight;
+
+            newX = Math.max(0, Math.min(newX, maxX));
+            newY = Math.max(0, Math.min(newY, maxY));
+
+            dragContainer.style.left = newX + 'px';
+            dragContainer.style.top = newY + 'px';
+        }
+
+        function dragEnd() {
+            if (!isDragging) return;
+            isDragging = false;
+
+            if (hasMoved) {
+                // Simpan posisi baru ke localStorage
+                const rect = dragContainer.getBoundingClientRect();
+                localStorage.setItem('fab_pos_x', rect.left);
+                localStorage.setItem('fab_pos_y', rect.top);
+            }
+        }
+
+        // Event Listener Mouse & Touch
+        dragContainer.addEventListener('mousedown', dragStart);
+        window.addEventListener('mousemove', dragMove);
+        window.addEventListener('mouseup', dragEnd);
+
+        dragContainer.addEventListener('touchstart', dragStart, {passive: true});
+        window.addEventListener('touchmove', dragMove, {passive: true});
+        window.addEventListener('touchend', dragEnd);
+
+        // Fungsi Tombol Tambah (mengarahkan ke paketan.html jika tidak sedang digeser)
+        floatingPlusBtn.addEventListener('click', (e) => {
+            if (hasMoved) {
+                e.preventDefault();
+                return;
+            }
+            window.location.href = 'paketan.html';
+        });
     </script>
 </body>
 </html>

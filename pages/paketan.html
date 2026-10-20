@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelola Paketan - Warungku PWA</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Manifest PWA -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#dc2626">
+    <style>
+        /* Menghilangkan scrollbar secara universal */
+        html, body {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col justify-between pb-24 relative">
+
+    <!-- ================= TOAST NOTIFICATION ================= -->
+    <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2">
+        <span id="toastMsg">Pesan berhasil</span>
+    </div>
+
+    <!-- ================= HEADER ATAS ================= -->
+    <header class="bg-white shadow-sm p-3.5 flex justify-between items-center sticky top-0 z-40">
+        <a href="manajemen.html" class="flex items-center gap-2 text-gray-700 hover:text-red-600 transition font-semibold text-sm">
+            <span>←</span> Kembali
+        </a>
+        <h1 class="text-sm font-bold text-gray-900">Kelola Paketan Makanan</h1>
+        <div class="w-12"></div>
+    </header>
+
+    <!-- ================= KONTEN UTAMA ================= -->
+    <main class="p-4 max-w-md mx-auto w-full space-y-4 flex-1">
+        <!-- Form Tambah/Edit Paket -->
+        <div class="bg-white p-4 rounded-2xl shadow-xs border border-gray-100 space-y-3.5">
+            <h2 id="formTitle" class="text-xs font-bold text-red-600 uppercase tracking-wider">➕ Tambah Paket Baru</h2>
+            <input type="hidden" id="paketId">
+
+            <!-- Upload Gambar -->
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Gambar Paket</label>
+                <div class="flex items-center gap-3">
+                    <div id="previewContainer" class="w-16 h-16 bg-gray-100 rounded-xl border border-gray-200 overflow-hidden flex items-center justify-center flex-shrink-0 relative">
+                        <span id="placeholderIcon" class="text-xl">📷</span>
+                        <img id="imgPreview" src="" alt="Preview" class="w-full h-full object-cover hidden absolute inset-0">
+                    </div>
+                    <div class="flex-1">
+                        <input type="file" id="inputGambar" accept="image/*" class="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 cursor-pointer">
+                        <p class="text-[10px] text-gray-400 mt-1">Format: JPG, PNG (Maks. 2MB)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nama Paket -->
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Nama Paket</label>
+                <input type="text" id="inputNama" placeholder="Contoh: Paket Hemat Berdua" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-red-600">
+            </div>
+
+            <!-- Deskripsi -->
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Deskripsi / Keterangan Menu</label>
+                <textarea id="inputDeskripsi" rows="2" placeholder="Contoh: 2 Nasi Goreng + 2 Es Teh Manis" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-red-600"></textarea>
+            </div>
+
+            <!-- Harga & Masa Berlaku -->
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Harga (Rp)</label>
+                    <input type="text" id="inputHarga" placeholder="25.000" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-red-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Masa Berlaku</label>
+                    <input type="date" id="inputMasaBerlaku" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-red-600">
+                </div>
+            </div>
+
+            <!-- Tombol Aksi -->
+            <div class="flex gap-2 pt-1">
+                <button id="btnBatal" onclick="resetForm()" class="w-1/3 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer hidden">Batal</button>
+                <button onclick="simpanPaket()" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-bold text-xs shadow-md transition cursor-pointer">Simpan Paket</button>
+            </div>
+        </div>
+
+        <!-- Daftar Paket Tersimpan -->
+        <div class="space-y-3">
+            <h3 class="font-bold text-sm text-gray-900 px-1">📦 Daftar Paketan Aktif</h3>
+            <div id="paketListContainer" class="space-y-3">
+                <p class="text-center text-xs text-gray-400 py-6">Memuat data paket...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- ================= PENAMPUNG NAVIGASI BAWAH OTOMATIS ================= -->
+    <div id="appNavigation"></div>
+
+    <!-- ================= SCRIPT LOGIKA & FIRESTORE ================= -->
+    <script type="module">
+        import { db } from "../assets/js/firebase-config.js";
+        import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { initNavigation } from "../assets/js/navigation.js";
+
+        // Inisialisasi Navigasi Terpusat (parameter 'lainnya' menandakan menu Lainnya aktif)
+        document.addEventListener("DOMContentLoaded", () => {
+            initNavigation('lainnya');
+            muatDataPaket();
+        });
+
+        const paketListContainer = document.getElementById('paketListContainer');
+        const inputGambar = document.getElementById('inputGambar');
+        const imgPreview = document.getElementById('imgPreview');
+        const placeholderIcon = document.getElementById('placeholderIcon');
+        const inputNama = document.getElementById('inputNama');
+        const inputDeskripsi = document.getElementById('inputDeskripsi');
+        const inputHarga = document.getElementById('inputHarga');
+        const inputMasaBerlaku = document.getElementById('inputMasaBerlaku');
+        const paketId = document.getElementById('paketId');
+        const formTitle = document.getElementById('formTitle');
+        const btnBatal = document.getElementById('btnBatal');
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toastMsg');
+
+        let base64Image = "";
+
+        function showToast(message) {
+            toastMsg.textContent = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2000);
+        }
+
+        // Format angka otomatis jadi ribuan saat diketik
+        inputHarga.addEventListener('input', function(e) {
+            let value = this.value.replace(/[^,\d]/g, '').toString();
+            let split = value.split(',');
+            let sisa = split[0].length % 3;
+            let rupiah = split[0].substr(0, sisa);
+            let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+            if (ribuan) {
+                let separator = sisa ? '.' : '';
+                rupiah += separator + ribuan.join('.');
+            }
+            this.value = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+        });
+
+        // Kompres & Ubah Gambar ke Base64
+        inputGambar.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 400;
+                    const MAX_HEIGHT = 400;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    base64Image = canvas.toDataURL('image/jpeg', 0.7);
+                    
+                    imgPreview.src = base64Image;
+                    imgPreview.classList.remove('hidden');
+                    placeholderIcon.classList.add('hidden');
+                }
+                img.src = event.target.result;
+            }
+            reader.readAsDataURL(file);
+        });
+
+        window.resetForm = function() {
+            paketId.value = "";
+            inputNama.value = "";
+            inputDeskripsi.value = "";
+            inputHarga.value = "";
+            inputMasaBerlaku.value = "";
+            inputGambar.value = "";
+            base64Image = "";
+            imgPreview.src = "";
+            imgPreview.classList.add('hidden');
+            placeholderIcon.classList.remove('hidden');
+            formTitle.textContent = "➕ Tambah Paket Baru";
+            btnBatal.classList.add('hidden');
+        }
+
+        // Simpan atau Update Paket ke Firestore
+        window.simpanPaket = async function() {
+            const nama = inputNama.value.trim();
+            const deskripsi = inputDeskripsi.value.trim();
+            const rawHarga = inputHarga.value.replace(/\./g, ''); // Hilangkan titik ribuan sebelum simpan
+            const masaBerlaku = inputMasaBerlaku.value;
+            const id = paketId.value;
+
+            if (!nama || !rawHarga || !masaBerlaku) {
+                showToast("⚠️ Mohon lengkapi Nama, Harga, dan Masa Berlaku!");
+                return;
+            }
+
+            try {
+                const dataPaket = {
+                    nama,
+                    deskripsi,
+                    harga: Number(rawHarga),
+                    masaBerlaku,
+                    updatedAt: new Date().toISOString()
+                };
+
+                if (base64Image) {
+                    dataPaket.gambar = base64Image;
+                }
+
+                if (id) {
+                    const paketRef = doc(db, "paketan", id);
+                    await updateDoc(paketRef, dataPaket);
+                    showToast("✨ Paket berhasil diperbarui!");
+                } else {
+                    if (!base64Image) {
+                        showToast("⚠️ Mohon pilih gambar paket terlebih dahulu!");
+                        return;
+                    }
+                    dataPaket.gambar = base64Image;
+                    await addDoc(collection(db, "paketan"), dataPaket);
+                    showToast("🎉 Paket baru berhasil disimpan!");
+                }
+
+                resetForm();
+                muatDataPaket();
+            } catch (err) {
+                console.error("Gagal menyimpan paket:", err);
+                showToast("❌ Gagal menyimpan data!");
+            }
+        }
+
+        // Muat Data Paketan dari Firestore
+        async function muatDataPaket() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "paketan"));
+                if (querySnapshot.empty) {
+                    paketListContainer.innerHTML = `<p class="text-center text-xs text-gray-400 py-6">Belum ada paketan makanan aktif.</p>`;
+                    return;
+                }
+
+                paketListContainer.innerHTML = "";
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const id = docSnap.id;
+                    const formattedHarga = data.harga ? `Rp ${data.harga.toLocaleString('id-ID')}` : 'Rp 0';
+
+                    const card = `
+                        <div class="bg-white p-3.5 rounded-2xl shadow-xs border border-gray-100 flex items-center justify-between gap-3">
+                            <div class="w-16 h-16 bg-gray-200 rounded-xl overflow-hidden flex-shrink-0">
+                                <img src="${data.gambar || '../assets/img/placeholder.png'}" alt="${data.nama}" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="text-xs font-bold text-gray-900 truncate">${data.nama}</h4>
+                                <p class="text-[11px] text-gray-500 truncate">${data.deskripsi || '-'}</p>
+                                <p class="text-xs font-black text-red-600 mt-0.5">${formattedHarga}</p>
+                                <p class="text-[10px] text-gray-400 mt-0.5">📅 Berlaku s/d: <span class="font-semibold text-gray-700">${data.masaBerlaku || '-'}</span></p>
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <button onclick="editPaket('${id}', '${encodeURIComponent(data.nama)}', '${encodeURIComponent(data.deskripsi || '')}', '${data.harga}', '${data.masaBerlaku}', '${encodeURIComponent(data.gambar || '')}')" class="bg-blue-50 text-blue-600 hover:bg-blue-100 p-2 rounded-xl text-xs font-bold transition cursor-pointer" title="Edit">✏️</button>
+                                <button onclick="hapusPaket('${id}')" class="bg-red-50 text-red-600 hover:bg-red-100 p-2 rounded-xl text-xs font-bold transition cursor-pointer" title="Hapus">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                    paketListContainer.innerHTML += card;
+                });
+            } catch (err) {
+                console.error("Gagal memuat data paket:", err);
+                paketListContainer.innerHTML = `<p class="text-center text-xs text-red-500 py-6">Gagal memuat data paketan.</p>`;
+            }
+        }
+
+        // Edit Paket
+        window.editPaket = function(id, nama, deskripsi, harga, masaBerlaku, gambar) {
+            paketId.value = id;
+            inputNama.value = decodeURIComponent(nama);
+            inputDeskripsi.value = decodeURIComponent(deskripsi);
+            
+            let formattedEditHarga = Number(harga).toLocaleString('id-ID');
+            inputHarga.value = formattedEditHarga;
+            
+            inputMasaBerlaku.value = masaBerlaku;
+            
+            if (gambar) {
+                base64Image = decodeURIComponent(gambar);
+                imgPreview.src = base64Image;
+                imgPreview.classList.remove('hidden');
+                placeholderIcon.classList.add('hidden');
+            }
+
+            formTitle.textContent = "✏️ Edit Paket Makanan";
+            btnBatal.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Hapus Paket
+        window.hapusPaket = async function(id) {
+            if (confirm("Apakah Anda yakin ingin menghapus paket ini?")) {
+                try {
+                    await deleteDoc(doc(db, "paketan", id));
+                    showToast("🗑️ Paket berhasil dihapus!");
+                    muatDataPaket();
+                } catch (err) {
+                    console.error("Gagal menghapus paket:", err);
+                    showToast("❌ Gagal menghapus paket!");
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -43,7 +43,7 @@
 
     <!-- ================= KONTEN UTAMA MANAJEMEN BANNER ================= -->
     <main class="p-4 max-w-md mx-auto w-full space-y-4 flex-1">
-        <!-- Judul Halaman (Tombol Tambah Atas Telah Dihilangkan) -->
+        <!-- Judul Halaman -->
         <div class="flex justify-between items-center">
             <h1 class="text-lg font-bold text-gray-900">Manajemen Banner</h1>
         </div>
@@ -101,62 +101,20 @@
         </div>
     </div>
 
-    <!-- ================= NAVIGASI BAWAH ================= -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4 flex justify-around items-center z-50 max-w-md mx-auto">
-        <a href="../index.html" class="flex flex-col items-center text-gray-400 text-xs font-medium">
-            <span class="text-lg">🏠</span>
-            <span>Beranda</span>
-        </a>
-        <a href="#" class="flex flex-col items-center text-gray-400 text-xs font-medium">
-            <span class="text-lg">🏷️</span>
-            <span>Promo</span>
-        </a>
-        <a href="#" class="flex flex-col items-center text-gray-400 text-xs font-medium">
-            <span class="text-lg">📢</span>
-            <span>Broadcast</span>
-        </a>
-        <a href="#" class="flex flex-col items-center text-gray-400 text-xs font-medium">
-            <span class="text-lg">📅</span>
-            <span>Event</span>
-        </a>
-        <button id="btnLainnya" class="flex flex-col items-center text-red-600 text-xs font-semibold bg-transparent border-none cursor-pointer focus:outline-none">
-            <span class="text-lg">☰</span>
-            <span>Lainnya</span>
-        </button>
-    </nav>
-
-    <!-- ================= OPTION MENU (POP-UP) ================= -->
-    <div id="optionMenuModal" class="fixed inset-0 bg-black/30 flex items-end justify-end pb-16 pr-4 z-50 hidden">
-        <div class="bg-white text-gray-800 w-52 rounded-2xl shadow-xl overflow-hidden border border-gray-200">
-            <div class="bg-red-600 text-white px-4 py-2.5 flex justify-between items-center">
-                <span class="font-bold tracking-wider text-xs uppercase">OPTION MENU</span>
-                <button id="btnCloseOption" class="text-white hover:text-gray-200 font-bold text-sm cursor-pointer">✕</button>
-            </div>
-            <div class="py-1 divide-y divide-gray-100 text-xs font-medium">
-                <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-gray-700">
-                    <span class="text-red-600 text-base">⚙️</span>
-                    <span>Pengaturan</span>
-                </a>
-                <a href="manajemen.html" class="flex items-center gap-3 px-4 py-3 bg-red-50 text-red-600 font-bold transition">
-                    <span class="text-base">🏷️</span>
-                    <span>Manajemen</span>
-                </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-gray-700">
-                    <span class="text-red-600 text-base">📅</span>
-                    <span>Event</span>
-                </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-gray-700">
-                    <span class="text-red-600 text-base">📦</span>
-                    <span>Lihat Pesanan</span>
-                </a>
-            </div>
-        </div>
-    </div>
+    <!-- ================= PENAMPUNG NAVIGASI BAWAH OTOMATIS ================= -->
+    <div id="appNavigation"></div>
 
     <!-- ================= SCRIPT LOGIKA & FIRESTORE ================= -->
     <script type="module">
         import { db } from "../assets/js/firebase-config.js";
         import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { initNavigation } from "../assets/js/navigation.js";
+
+        // Inisialisasi Navigasi Terpusat (parameter 'lainnya' menandakan menu Lainnya aktif)
+        document.addEventListener("DOMContentLoaded", () => {
+            initNavigation('lainnya');
+            muatDataBanner();
+        });
 
         const modalTambah = document.getElementById('modalTambah');
         const modalTitle = document.getElementById('modalTitle');
@@ -345,27 +303,6 @@
                 console.error("Gagal memuat banner: ", err);
             }
         }
-
-        document.addEventListener("DOMContentLoaded", muatDataBanner);
-
-        const btnLainnya = document.getElementById('btnLainnya');
-        const optionMenuModal = document.getElementById('optionMenuModal');
-        const btnCloseOption = document.getElementById('btnCloseOption');
-
-        btnLainnya.addEventListener('click', (e) => {
-            e.stopPropagation();
-            optionMenuModal.classList.remove('hidden');
-        });
-
-        btnCloseOption.addEventListener('click', () => {
-            optionMenuModal.classList.add('hidden');
-        });
-
-        window.addEventListener('click', (e) => {
-            if (e.target === optionMenuModal) {
-                optionMenuModal.classList.add('hidden');
-            }
-        });
     </script>
 </body>
 </html>

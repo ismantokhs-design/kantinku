@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kantin Ku PWA - Masuk</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Manifest PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#dc2626">
+    <style>
+        /* Hilangkan scrollbar tapi tetap bisa digeser */
+        ::-webkit-scrollbar { display: none; }
+        body { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col justify-between select-none">
+
+    <!-- ================= SPLASH SCREEN (MUNCUL SAAT AWAL & SETELAH LOGIN) ================= -->
+    <div id="splashScreen" class="fixed inset-0 bg-gradient-to-br from-red-600 via-rose-600 to-red-700 z-50 flex flex-col items-center justify-center text-white p-6 transition-opacity duration-700">
+        <div class="relative flex flex-col items-center space-y-6 text-center">
+            <!-- Logo Ikon dengan Efek Pulse -->
+            <div class="w-24 h-24 bg-white text-red-600 rounded-3xl shadow-2xl flex items-center justify-center font-black text-4xl tracking-wider animate-bounce">
+                K
+            </div>
+            <!-- Teks Judul Splash -->
+            <div class="space-y-2">
+                <h1 class="text-3xl font-black tracking-wider uppercase drop-shadow-md">Kantin Ku</h1>
+                <p id="splashText" class="text-xs text-red-100 font-medium tracking-wide">Sistem Pengelolaan Kantin & Transaksi Modern</p>
+            </div>
+            <!-- Indikator Loading Putar -->
+            <div class="pt-6 flex flex-col items-center space-y-2">
+                <div class="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <span id="splashSubText" class="text-[10px] text-red-200 tracking-widest uppercase font-semibold">Memuat Aplikasi...</span>
+            </div>
+        </div>
+        <!-- Hak Cipta Bawah Splash -->
+        <div class="absolute bottom-6 text-[10px] text-red-200/80 tracking-widest uppercase">
+            © 2026 Kantin Ku PWA
+        </div>
+    </div>
+
+    <!-- ================= HALAMAN UTAMA LOGIN ================= -->
+    <!-- Header / Kartu Atas (Cerah & Segar) -->
+    <div class="w-full bg-gradient-to-b from-red-600 to-rose-600 rounded-b-[35px] p-6 text-center shadow-md space-y-3">
+        <div class="inline-block bg-white/25 text-white text-[10px] font-bold tracking-widest px-3 py-1 rounded-full uppercase border border-white/30 backdrop-blur-xs">
+            KANTIN KU
+        </div>
+        <div>
+            <h1 class="text-2xl font-black text-white tracking-wide">Halo, Pengguna!</h1>
+            <p class="text-xs text-red-100 mt-1">Silakan masuk untuk mengakses dasbor kantin</p>
+        </div>
+        <p class="text-[11px] text-red-100/90 font-medium pt-1">Sistem Pengelolaan Kantin & Transaksi</p>
+    </div>
+
+    <!-- Konten Tengah & Menu Cepat -->
+    <main class="p-5 max-w-md mx-auto w-full space-y-6 flex-1 flex flex-col justify-center">
+        <div class="space-y-2">
+            <div class="flex items-center gap-1 text-[11px] font-bold text-gray-500 tracking-wider uppercase px-1">
+                <span>FAST MENU</span>
+                <span class="text-xs text-red-600">ℹ️</span>
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+                <!-- Informasi -->
+                <button id="btnInfo" class="bg-white hover:bg-gray-100 border border-gray-200 p-3 rounded-2xl flex flex-col items-center justify-center space-y-2 transition cursor-pointer shadow-sm">
+                    <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-lg shadow-inner">📢</div>
+                    <span class="text-xs font-semibold text-gray-700">Informasi</span>
+                </button>
+                <!-- Tentang -->
+                <button id="btnTentang" class="bg-white hover:bg-gray-100 border border-gray-200 p-3 rounded-2xl flex flex-col items-center justify-center space-y-2 transition cursor-pointer shadow-sm">
+                    <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-lg shadow-inner">ℹ️</div>
+                    <span class="text-xs font-semibold text-gray-700">Tentang</span>
+                </button>
+                <!-- Bantuan -->
+                <button id="btnBantuan" class="bg-white hover:bg-gray-100 border border-gray-200 p-3 rounded-2xl flex flex-col items-center justify-center space-y-2 transition cursor-pointer shadow-sm">
+                    <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-lg shadow-inner">❓</div>
+                    <span class="text-xs font-semibold text-gray-700">Bantuan</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Tombol Login Bawah -->
+    <div class="p-5 max-w-md mx-auto w-full space-y-3 text-center">
+        <button id="openLoginModal" class="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold py-3.5 rounded-2xl text-sm transition shadow-lg shadow-red-600/25 cursor-pointer">
+            Login
+        </button>
+        <p class="text-[11px] text-gray-400 pb-2">© Copyright Kantin Ku 2026</p>
+    </div>
+
+    <!-- Modal Informasi / Tentang / Bantuan (Dinamis) -->
+    <div id="infoModal" class="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 z-50 hidden transition-all duration-300">
+        <div class="bg-white text-gray-900 w-full max-w-md rounded-t-[30px] sm:rounded-3xl shadow-2xl border border-gray-100 p-6 space-y-4 animate-in fade-in slide-in-from-bottom duration-300">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <h2 id="modalTitle" class="text-base font-bold text-gray-900">Judul Informasi</h2>
+                <button id="closeInfoModal" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center font-bold text-sm cursor-pointer transition">✕</button>
+            </div>
+            <div id="modalBody" class="text-xs text-gray-600 leading-relaxed space-y-2">
+                <!-- Konten dinamis masuk sini -->
+            </div>
+            <button id="btnCloseBody" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2.5 rounded-xl text-xs transition cursor-pointer">Tutup</button>
+        </div>
+    </div>
+
+    <!-- Modal Form Login Email (Nuansa Cerah & Bersih) -->
+    <div id="loginModal" class="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 z-50 hidden transition-all duration-300">
+        <div class="bg-white text-gray-900 w-full max-w-md rounded-t-[30px] sm:rounded-3xl shadow-2xl border border-gray-100 p-6 space-y-5 animate-in fade-in slide-in-from-bottom duration-300">
+            
+            <!-- Header Modal -->
+            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <div>
+                    <h2 class="text-base font-bold text-gray-900">Masuk Sistem</h2>
+                    <p class="text-[11px] text-gray-500">Masukkan email terdaftar Anda</p>
+                </div>
+                <button id="closeLoginModal" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center font-bold text-sm cursor-pointer transition">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Pesan Error / Notifikasi -->
+            <div id="errorAlert" class="hidden bg-red-50 border border-red-200 text-red-600 text-xs p-3 rounded-xl text-center"></div>
+
+            <!-- Form Email Tanpa Sandi -->
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1.5">Alamat Email</label>
+                    <input type="email" id="email" required class="w-full px-3.5 py-3 text-xs bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-900 placeholder-gray-400" placeholder="nama@email.com">
+                </div>
+
+                <div class="text-[11px] text-gray-500 flex justify-between items-center pt-1">
+                    <span>Belum punya akun? Hubungi Admin.</span>
+                    <a href="#" onclick="alert('Silakan hubungi administrator Kantin Ku untuk mendaftarkan email Anda.')" class="text-red-600 hover:underline font-semibold">Bantuan Email?</a>
+                </div>
+
+                <button type="submit" id="submitBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl text-xs transition shadow-md shadow-red-600/20 cursor-pointer">
+                    Masuk Aplikasi
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Skrip Interaksi Splash Screen, Modal, & Firestore -->
+    <script type="module">
+        import { db } from "./assets/js/firebase-config.js";
+        import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const splashScreen = document.getElementById('splashScreen');
+        const splashText = document.getElementById('splashText');
+        const splashSubText = document.getElementById('splashSubText');
+
+        // Hilangkan splash screen awal setelah 1.5 detik
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                if (splashScreen) {
+                    splashScreen.classList.add('opacity-0', 'pointer-events-none');
+                    setTimeout(() => splashScreen.remove(), 700);
+                }
+            }, 1500);
+        });
+
+        // Elemen Fast Menu Modal
+        const infoModal = document.getElementById('infoModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        const closeInfoModal = document.getElementById('closeInfoModal');
+        const btnCloseBody = document.getElementById('btnCloseBody');
+
+        document.getElementById('btnInfo').addEventListener('click', () => {
+            modalTitle.textContent = "Informasi Sistem";
+            modalBody.innerHTML = `
+                <p><b>Kantin Ku</b> adalah aplikasi kasir dan manajemen pencatatan transaksi toko modern berbasis PWA (Progressive Web App).</p>
+                <p>Aplikasi ini dirancang untuk memudahkan pengelolaan warung atau kantin secara praktis, cepat, dan terhubung langsung secara real-time dengan basis data awan.</p>
+            `;
+            infoModal.classList.remove('hidden');
+        });
+
+        document.getElementById('btnTentang').addEventListener('click', () => {
+            modalTitle.textContent = "Tentang Aplikasi";
+            modalBody.innerHTML = `
+                <p><b>Nama Aplikasi:</b> Kantin Ku</p>
+                <p><b>Versi:</b> 1.0.0 (Production Stable)</p>
+                <p><b>Pengembang:</b> Tim IT & Developer Kantin Ku</p>
+                <p><b>Hak Cipta:</b> © 2026 Seluruh hak cipta dilindungi undang-undang.</p>
+            `;
+            infoModal.classList.remove('hidden');
+        });
+
+        document.getElementById('btnBantuan').addEventListener('click', () => {
+            modalTitle.textContent = "Bantuan & Dukungan";
+            modalBody.innerHTML = `
+                <p><b>Cara Masuk:</b> Cukup masukkan alamat email terdaftar Anda tanpa perlu kata sandi (*password*).</p>
+                <p><b>Kendala Akses:</b> Jika email Anda ditolak atau belum terdaftar, silakan hubungi administrator atau pengelola utama Kantin Ku untuk mendapatkan hak akses ke sistem.</p>
+            `;
+            infoModal.classList.remove('hidden');
+        });
+
+        const closeInfoFn = () => infoModal.classList.add('hidden');
+        closeInfoModal.addEventListener('click', closeInfoFn);
+        btnCloseBody.addEventListener('click', closeInfoFn);
+
+        // Elemen Login Modal
+        const openLoginModal = document.getElementById('openLoginModal');
+        const closeLoginModal = document.getElementById('closeLoginModal');
+        const loginModal = document.getElementById('loginModal');
+        const loginForm = document.getElementById('loginForm');
+        const emailInput = document.getElementById('email');
+        const errorAlert = document.getElementById('errorAlert');
+        const submitBtn = document.getElementById('submitBtn');
+
+        openLoginModal.addEventListener('click', () => {
+            loginModal.classList.remove('hidden');
+            emailInput.focus();
+        });
+
+        closeLoginModal.addEventListener('click', () => {
+            loginModal.classList.add('hidden');
+            errorAlert.classList.add('hidden');
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === loginModal) {
+                loginModal.classList.add('hidden');
+                errorAlert.classList.add('hidden');
+            }
+            if (e.target === infoModal) {
+                infoModal.classList.add('hidden');
+            }
+        });
+
+        // Proses Login Berbasis Email Firestore + Tampilkan Splash Keren Saat Berhasil
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorAlert.classList.add('hidden');
+            submitBtn.textContent = 'Memeriksa Email...';
+            submitBtn.disabled = true;
+
+            const inputEmail = emailInput.value.trim().toLowerCase();
+
+            try {
+                const usersRef = collection(db, "users");
+                const q = query(usersRef, where("email", "==", inputEmail));
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    let userData = null;
+                    querySnapshot.forEach((doc) => {
+                        userData = doc.data();
+                    });
+
+                    // Simpan sesi permanen ke LocalStorage
+                    localStorage.setItem('kantin_logged_in', 'true');
+                    localStorage.setItem('kantin_user_email', userData.email);
+                    localStorage.setItem('kantin_user_role', userData.role || 'Member');
+
+                    // Tutup modal login
+                    loginModal.classList.add('hidden');
+
+                    // Tampilkan kembali Splash Screen Keren sebelum masuk dasbor
+                    const newSplash = document.createElement('div');
+                    newSplash.id = 'splashScreen';
+                    newSplash.className = 'fixed inset-0 bg-gradient-to-br from-red-600 via-rose-600 to-red-700 z-50 flex flex-col items-center justify-center text-white p-6 transition-opacity duration-700';
+                    newSplash.innerHTML = `
+                        <div class="relative flex flex-col items-center space-y-6 text-center">
+                            <div class="w-24 h-24 bg-white text-red-600 rounded-3xl shadow-2xl flex items-center justify-center font-black text-4xl tracking-wider animate-bounce">K</div>
+                            <div class="space-y-2">
+                                <h1 class="text-3xl font-black tracking-wider uppercase drop-shadow-md">Selamat Datang!</h1>
+                                <p class="text-xs text-red-100 font-medium tracking-wide">Masuk sebagai: ${userData.email}</p>
+                            </div>
+                            <div class="pt-6 flex flex-col items-center space-y-2">
+                                <div class="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                <span class="text-[10px] text-red-200 tracking-widest uppercase font-semibold">Menyiapkan Dasbor...</span>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(newSplash);
+
+                    // Berpindah ke index.html setelah 1.5 detik animasi splash screen selesai
+                    setTimeout(() => {
+                        window.location.replace('index.html');
+                    }, 1500);
+
+                } else {
+                    errorAlert.textContent = "Email tidak terdaftar dalam sistem Kantin Ku.";
+                    errorAlert.classList.remove('hidden');
+                    submitBtn.textContent = 'Masuk Aplikasi';
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error("Gagal verifikasi login:", error);
+                errorAlert.textContent = "Terjadi kesalahan koneksi database. Coba lagi.";
+                errorAlert.classList.remove('hidden');
+                submitBtn.textContent = 'Masuk Aplikasi';
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

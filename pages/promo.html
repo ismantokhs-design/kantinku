@@ -18,9 +18,22 @@
         html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar {
             display: none; /* Chrome, Safari, Opera */
         }
+        /* Mencegah seleksi teks saat tombol digeser */
+        #draggableBtn {
+            touch-action: none;
+            user-select: none;
+        }
+        /* Style agar tab kategori di modal bisa digeser pakai mouse */
+        #modalTabContainer {
+            cursor: grab;
+            user-select: none;
+        }
+        #modalTabContainer:active {
+            cursor: grabbing;
+        }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col justify-between pb-24 relative">
+<body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col justify-between pb-24 relative overflow-x-hidden">
 
     <!-- ================= TOAST NOTIFICATION (SMOOTH POPUP) ================= -->
     <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2">
@@ -28,24 +41,19 @@
     </div>
 
     <!-- ================= HEADER ATAS ================= -->
-    <header class="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-40">
+    <header class="bg-white shadow-sm p-3.5 flex justify-between items-center sticky top-0 z-40">
         <a href="manajemen.html" class="flex items-center gap-2 text-gray-700 hover:text-red-600 transition font-semibold text-sm">
             <span>←</span> Kembali
         </a>
-        <div class="inline-flex items-center border-2 border-red-600 rounded-full px-3 py-1">
-            <div class="w-5 h-5 bg-blue-900 rounded-full flex items-center justify-center text-white font-bold text-xs mr-1">W</div>
-            <div class="text-left leading-tight">
-                <span class="block text-[9px] font-semibold text-black tracking-wider uppercase">APLIKASI</span>
-                <span class="block text-sm font-black text-red-600 leading-none">warungku</span>
-            </div>
-        </div>
+        <h1 class="text-sm font-bold text-gray-900">Manajemen Promo</h1>
+        <div class="w-12"></div>
     </header>
 
     <!-- ================= KONTEN UTAMA MANAJEMEN PROMO ================= -->
     <main class="p-4 max-w-md mx-auto w-full space-y-4 flex-1">
-        <!-- Judul Halaman -->
-        <div class="flex justify-between items-center">
-            <h1 class="text-lg font-bold text-gray-900">Manajemen Promo</h1>
+        <!-- Informasi Efisiensi Penyimpanan -->
+        <div class="bg-red-50 border border-red-100 rounded-2xl p-3 text-[11px] text-red-700 leading-relaxed">
+            💡 Halaman ini menampilkan daftar produk yang sedang aktif sebagai <b>Promo</b>. Geser tombol <b>+</b> di layar atau tekan untuk menambah promo baru.
         </div>
 
         <!-- Kolom Pencarian -->
@@ -55,138 +63,120 @@
             <span class="absolute right-3 top-3 text-gray-400">🔍</span>
         </div>
 
-        <!-- Daftar Promo -->
+        <!-- Daftar Promo Aktif -->
         <div id="promoListContainer" class="space-y-3">
-            <p id="emptyMessage" class="text-center text-xs text-gray-400 py-8">Belum ada promo di database.</p>
+            <p id="emptyMessage" class="text-center text-xs text-gray-400 py-8">Memuat data promo...</p>
         </div>
     </main>
 
-    <!-- ================= TOMBOL TAMBAH (+) MENGAMBANG ================= -->
-    <div class="fixed bottom-20 right-6 z-40">
-        <button onclick="bukaModalTambah()" class="w-14 h-14 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg flex items-center justify-center text-2xl font-bold transition cursor-pointer">
+    <!-- ================= TOMBOL TAMBAH (+) BISA DIGESER (DRAGGABLE) ================= -->
+    <div id="draggableBtn" class="fixed bottom-24 right-6 z-40 cursor-grab active:cursor-grabbing">
+        <button onclick="bukaModalPilihProduk()" class="w-14 h-14 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-xl flex items-center justify-center text-2xl font-bold transition hover:scale-105 border-2 border-white pointer-events-auto cursor-pointer">
             +
         </button>
     </div>
 
-    <!-- ================= MODAL TAMBAH / EDIT PROMO ================= -->
-    <div id="modalTambah" class="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden transition-opacity">
-        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-5 space-y-4 relative max-h-[90vh] overflow-y-auto">
-            <button onclick="tutupModalTambah()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-sm cursor-pointer">✕</button>
-            <h3 id="modalTitle" class="text-base font-bold text-gray-900 border-b pb-2">Tambah Promo Baru</h3>
-
-            <form id="promoForm" class="space-y-3">
-                <input type="hidden" id="promoId">
-                
-                <!-- Pratinjau Gambar (4:5) -->
+    <!-- ================= MODAL PILIH PRODUK UNTUK PROMO ================= -->
+    <div id="modalPilihProduk" class="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-5 space-y-3.5 relative max-h-[85vh] flex flex-col">
+            <div class="flex justify-between items-center border-b pb-2">
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Pratinjau Gambar (4:5)</label>
-                    <div id="previewBox" class="w-32 h-40 mx-auto bg-gray-100 rounded-xl overflow-hidden border border-dashed border-gray-300 flex items-center justify-center">
-                        <img id="imagePreview" src="" alt="Pratinjau" class="w-full h-full object-cover hidden">
-                        <span id="previewPlaceholder" class="text-[10px] text-gray-400 text-center p-2">Pratinjau Gambar (4:5)</span>
-                    </div>
+                    <h3 class="font-bold text-sm text-gray-900">📦 Pilih Produk untuk Promo</h3>
+                    <p class="text-[10px] text-gray-500">Pilih kategori dan aktifkan tombol untuk menjadikan promo</p>
                 </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Nama Promo</label>
-                    <input type="text" id="promoNama" required placeholder="Misal: Minyak Goreng" 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-red-600">
+                <button onclick="tutupModalPilihProduk()" class="text-gray-400 hover:text-gray-600 font-bold text-sm cursor-pointer">✕</button>
+            </div>
+            
+            <!-- TAB KATEGORI DI DALAM MODAL (Bisa Digeser Kanan-Kiri) -->
+            <div class="w-full overflow-hidden">
+                <div class="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 scroll-smooth no-scrollbar" style="overflow-x: auto; -webkit-overflow-scrolling: touch;" id="modalTabContainer">
+                    <button onclick="switchModalTab('Makanan')" id="modalTab-Makanan" class="modal-tab-btn px-4 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap bg-red-600 text-white shadow-sm cursor-pointer flex-shrink-0">
+                        🍱 Makanan
+                    </button>
+                    <button onclick="switchModalTab('Minuman')" id="modalTab-Minuman" class="modal-tab-btn px-4 py-1.5 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer flex-shrink-0">
+                        🥤 Minuman
+                    </button>
+                    <button onclick="switchModalTab('Mie')" id="modalTab-Mie" class="modal-tab-btn px-4 py-1.5 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer flex-shrink-0">
+                        🍜 Mie
+                    </button>
+                    <button onclick="switchModalTab('Camilan')" id="modalTab-Camilan" class="modal-tab-btn px-4 py-1.5 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer flex-shrink-0">
+                        🍿 Camilan
+                    </button>
+                    <button onclick="switchModalTab('Lainnya')" id="modalTab-Lainnya" class="modal-tab-btn px-4 py-1.5 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer flex-shrink-0">
+                        📁 Lainnya
+                    </button>
                 </div>
+            </div>
 
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Keterangan</label>
-                    <input type="text" id="promoKeterangan" required placeholder="Misal: Diskon 20%" 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-red-600">
-                </div>
+            <!-- Kolom Cari di Modal -->
+            <div class="relative">
+                <input type="text" id="searchModalInput" placeholder="Cari nama produk..." 
+                    class="w-full pl-3 pr-8 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-red-600">
+                <span class="absolute right-3 top-2.5 text-gray-400 text-xs">🔍</span>
+            </div>
 
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Upload Gambar</label>
-                    <input type="file" id="promoFile" accept="image/*" 
-                        class="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 cursor-pointer">
-                    <p class="text-[10px] text-gray-400 mt-1">*Kosongkan jika tidak ingin mengubah gambar saat Edit.</p>
-                </div>
+            <!-- List Semua Produk dengan Toggle -->
+            <div id="listProdukContainer" class="space-y-2.5 overflow-y-auto flex-1 p-1 max-h-[48vh]">
+                <p class="text-center text-xs text-gray-400 py-6">Memuat produk...</p>
+            </div>
 
-                <button type="submit" id="btnSimpanPromo" class="w-full bg-blue-900 hover:bg-blue-950 text-white py-2.5 rounded-xl font-bold shadow transition cursor-pointer text-xs">
-                    Simpan Promo
-                </button>
-            </form>
+            <button onclick="tutupModalPilihProduk()" class="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-bold shadow transition cursor-pointer text-xs">
+                Selesai
+            </button>
         </div>
     </div>
 
-    <!-- ================= NAVIGASI BAWAH ================= -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4 flex justify-around items-center z-50 max-w-md mx-auto">
-        <a href="../index.html" class="flex flex-col items-center text-gray-400 text-xs font-medium">
-            <span class="text-lg">🏠</span>
-            <span>Beranda</span>
-        </a>
-        <a href="#" class="flex flex-col items-center text-red-600 text-xs font-semibold">
-            <span class="text-lg">🏷️</span>
-            <span>Promo</span>
-        </a>
-        <a href="#" class="flex flex-col items-center text-gray-400 text-xs font-medium">
-            <span class="text-lg">📢</span>
-            <span>Broadcast</span>
-        </a>
-        <a href="#" class="flex flex-col items-center text-gray-400 text-xs font-medium">
-            <span class="text-lg">📅</span>
-            <span>Event</span>
-        </a>
-        <button id="btnLainnya" class="flex flex-col items-center text-gray-400 text-xs font-medium bg-transparent border-none cursor-pointer focus:outline-none">
-            <span class="text-lg">☰</span>
-            <span>Lainnya</span>
-        </button>
-    </nav>
-
-    <!-- ================= OPTION MENU (POP-UP) ================= -->
-    <div id="optionMenuModal" class="fixed inset-0 bg-black/30 flex items-end justify-end pb-16 pr-4 z-50 hidden">
-        <div class="bg-white text-gray-800 w-52 rounded-2xl shadow-xl overflow-hidden border border-gray-200">
-            <div class="bg-red-600 text-white px-4 py-2.5 flex justify-between items-center">
-                <span class="font-bold tracking-wider text-xs uppercase">OPTION MENU</span>
-                <button id="btnCloseOption" class="text-white hover:text-gray-200 font-bold text-sm cursor-pointer">✕</button>
-            </div>
-            <div class="py-1 divide-y divide-gray-100 text-xs font-medium">
-                <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-gray-700">
-                    <span class="text-red-600 text-base">⚙️</span>
-                    <span>Pengaturan</span>
-                </a>
-                <a href="manajemen.html" class="flex items-center gap-3 px-4 py-3 bg-red-50 text-red-600 font-bold transition">
-                    <span class="text-base">🏷️</span>
-                    <span>Manajemen</span>
-                </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-gray-700">
-                    <span class="text-red-600 text-base">📅</span>
-                    <span>Event</span>
-                </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-gray-700">
-                    <span class="text-red-600 text-base">📦</span>
-                    <span>Lihat Pesanan</span>
-                </a>
-            </div>
-        </div>
-    </div>
+    <!-- ================= PENAMPUNG NAVIGASI BAWAH OTOMATIS ================= -->
+    <div id="appNavigation"></div>
 
     <!-- ================= SCRIPT LOGIKA & FIRESTORE ================= -->
     <script type="module">
         import { db } from "../assets/js/firebase-config.js";
-        import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { initNavigation } from "../assets/js/navigation.js";
 
-        const modalTambah = document.getElementById('modalTambah');
-        const modalTitle = document.getElementById('modalTitle');
-        const promoForm = document.getElementById('promoForm');
-        const promoIdInput = document.getElementById('promoId');
-        const promoNama = document.getElementById('promoNama');
-        const promoKeterangan = document.getElementById('promoKeterangan');
-        const promoFile = document.getElementById('promoFile');
-        const imagePreview = document.getElementById('imagePreview');
-        const previewPlaceholder = document.getElementById('previewPlaceholder');
-        const btnSimpanPromo = document.getElementById('btnSimpanPromo');
+        // Inisialisasi Navigasi Terpusat (parameter 'lainnya' menandakan menu Lainnya aktif)
+        document.addEventListener("DOMContentLoaded", () => {
+            initNavigation('lainnya');
+            muatDataProduk();
+            setupDraggableModalTabs();
+        });
+
+        // Fungsi agar tab kategori di modal bisa digeser pakai mouse (drag)
+        function setupDraggableModalTabs() {
+            const slider = document.getElementById('modalTabContainer');
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+
+            slider.addEventListener('mousedown', (e) => {
+                isDown = true;
+                slider.classList.add('active');
+                startX = e.pageX - slider.offsetLeft;
+                scrollLeft = slider.scrollLeft;
+            });
+
+            slider.addEventListener('mouseleave', () => { isDown = false; });
+            slider.addEventListener('mouseup', () => { isDown = false; });
+            slider.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - slider.offsetLeft;
+                const walk = (x - startX) * 2;
+                slider.scrollLeft = scrollLeft - walk;
+            });
+        }
+
         const promoListContainer = document.getElementById('promoListContainer');
+        const listProdukContainer = document.getElementById('listProdukContainer');
         const searchInput = document.getElementById('searchInput');
+        const searchModalInput = document.getElementById('searchModalInput');
+        const modalPilihProduk = document.getElementById('modalPilihProduk');
         const toast = document.getElementById('toast');
         const toastMsg = document.getElementById('toastMsg');
 
-        let base64String = "";
-        let existingImageUrl = "";
-        let allPromos = [];
+        let allProduk = [];
+        let currentModalCategory = "Makanan";
 
         function showToast(message) {
             toastMsg.textContent = message;
@@ -195,219 +185,217 @@
             setTimeout(() => {
                 toast.classList.remove('opacity-100');
                 toast.classList.add('opacity-0', 'pointer-events-none');
-            }, 2500);
+            }, 2000);
         }
 
-        window.bukaModalTambah = function() {
-            modalTitle.textContent = "Tambah Promo Baru";
-            promoIdInput.value = "";
-            promoForm.reset();
-            imagePreview.src = "";
-            imagePreview.classList.add('hidden');
-            previewPlaceholder.classList.remove('hidden');
-            base64String = "";
-            existingImageUrl = "";
-            modalTambah.classList.remove('hidden');
+        // Fungsi Drag & Drop Tombol Mengapung (+)
+        const draggableBtn = document.getElementById('draggableBtn');
+        let isDragging = false;
+        let startX, startY, initialX, initialY;
+
+        function dragStart(e) {
+            isDragging = true;
+            const clientX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
+            
+            startX = clientX;
+            startY = clientY;
+            
+            const rect = draggableBtn.getBoundingClientRect();
+            initialX = rect.left;
+            initialY = rect.top;
+
+            draggableBtn.style.position = 'fixed';
+            draggableBtn.style.bottom = 'auto';
+            draggableBtn.style.right = 'auto';
+            draggableBtn.style.left = initialX + 'px';
+            draggableBtn.style.top = initialY + 'px';
         }
 
-        window.tutupModalTambah = function() {
-            modalTambah.classList.add('hidden');
-            promoForm.reset();
-            imagePreview.src = "";
-            imagePreview.classList.add('hidden');
-            previewPlaceholder.classList.remove('hidden');
-            base64String = "";
-            existingImageUrl = "";
+        function drag(e) {
+            if (!isDragging) return;
+            const clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
+
+            const dx = clientX - startX;
+            const dy = clientY - startY;
+
+            draggableBtn.style.left = (initialX + dx) + 'px';
+            draggableBtn.style.top = (initialY + dy) + 'px';
         }
 
-        window.bukaModalEdit = function(id, nama, keterangan, gambar) {
-            modalTitle.textContent = "Edit Promo";
-            promoIdInput.value = id;
-            promoNama.value = nama;
-            promoKeterangan.value = keterangan;
-            existingImageUrl = gambar;
-            base64String = gambar;
-
-            imagePreview.src = gambar;
-            imagePreview.classList.remove('hidden');
-            previewPlaceholder.classList.add('hidden');
-            modalTambah.classList.remove('hidden');
+        function dragEnd() {
+            isDragging = false;
         }
 
-        promoFile.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(uploadEvent) {
-                    base64String = uploadEvent.target.result;
-                    imagePreview.src = base64String;
-                    imagePreview.classList.remove('hidden');
-                    previewPlaceholder.classList.add('hidden');
-                };
-                reader.readAsDataURL(file);
+        draggableBtn.addEventListener('mousedown', dragStart);
+        window.addEventListener('mousemove', drag);
+        window.addEventListener('mouseup', dragEnd);
+
+        draggableBtn.addEventListener('touchstart', dragStart);
+        window.addEventListener('touchmove', drag);
+        window.addEventListener('touchend', dragEnd);
+
+        // Fungsi Ganti Tab Kategori di dalam Modal
+        window.switchModalTab = function(category) {
+            currentModalCategory = category;
+            
+            document.querySelectorAll('.modal-tab-btn').forEach(btn => {
+                btn.className = "modal-tab-btn px-4 py-1.5 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer flex-shrink-0";
+            });
+
+            const activeBtn = document.getElementById(`modalTab-${category}`);
+            if (activeBtn) {
+                activeBtn.className = "modal-tab-btn px-4 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap bg-red-600 text-white shadow-sm cursor-pointer flex-shrink-0";
             }
-        });
 
-        promoForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const nama = promoNama.value.trim();
-            const keterangan = promoKeterangan.value.trim();
-            const id = promoIdInput.value;
+            tampilkanModalProduk(allProduk, searchModalInput.value.toLowerCase());
+        };
 
-            if (!base64String) {
-                showToast("⚠️ Pilih gambar terlebih dahulu!");
-                return;
-            }
-
-            btnSimpanPromo.textContent = "Menyimpan...";
-            btnSimpanPromo.disabled = true;
-
-            try {
-                if (id) {
-                    const promoRef = doc(db, "promo", id);
-                    await updateDoc(promoRef, {
-                        nama: nama,
-                        keterangan: keterangan,
-                        gambar: base64String
-                    });
-                    showToast("✨ Promo berhasil diperbarui!");
-                } else {
-                    await addDoc(collection(db, "promo"), {
-                        nama: nama,
-                        keterangan: keterangan,
-                        gambar: base64String,
-                        status: true,
-                        createdAt: new Date().toISOString()
-                    });
-                    showToast("✨ Promo berhasil disimpan!");
-                }
-
-                tutupModalTambah();
-                muatDataPromo();
-            } catch (error) {
-                console.error("Gagal simpan promo: ", error);
-                showToast("❌ Terjadi kesalahan!");
-            } finally {
-                btnSimpanPromo.textContent = "Simpan Promo";
-                btnSimpanPromo.disabled = false;
-            }
-        });
-
-        window.hapusPromo = async function(id) {
-            if (confirm("Apakah Anda yakin ingin menghapus promo ini?")) {
-                try {
-                    await deleteDoc(doc(db, "promo", id));
-                    showToast("🗑️ Promo berhasil dihapus!");
-                    muatDataPromo();
-                } catch (err) {
-                    console.error("Gagal hapus: ", err);
-                    showToast("❌ Gagal menghapus promo!");
-                }
-            }
-        }
-
+        // Fungsi mengubah status isPromo langsung pada database produk
         window.ubahStatusPromo = async function(id, currentStatus) {
             try {
-                const promoRef = doc(db, "promo", id);
-                await updateDoc(promoRef, {
-                    status: !currentStatus
+                const produkRef = doc(db, "produk", id);
+                await updateDoc(produkRef, {
+                    isPromo: !currentStatus
                 });
-                showToast("🔄 Status promo diubah!");
-                muatDataPromo();
+                showToast("✨ Status promo berhasil diperbarui!");
+                muatDataProduk();
             } catch (err) {
-                console.error("Gagal ubah status: ", err);
+                console.error("Gagal ubah status promo:", err);
+                showToast("❌ Gagal memperbarui status!");
             }
         }
 
-        async function muatDataPromo() {
+        async function muatDataProduk() {
             try {
-                const q = query(collection(db, "promo"), orderBy("createdAt", "desc"));
-                const querySnapshot = await getDocs(q);
-                
-                allPromos = [];
+                const querySnapshot = await getDocs(collection(db, "produk"));
+                allProduk = [];
                 querySnapshot.forEach((docSnap) => {
-                    allPromos.push({ id: docSnap.id, ...docSnap.data() });
+                    allProduk.push({ id: docSnap.id, ...docSnap.data() });
                 });
 
-                tampilkanPromo(allPromos);
+                tampilkanPromoAktif(allProduk);
+                tampilkanModalProduk(allProduk, searchModalInput.value.toLowerCase());
             } catch (err) {
-                console.error("Gagal memuat promo: ", err);
+                console.error("Gagal memuat produk: ", err);
+                promoListContainer.innerHTML = `<p class="text-center text-xs text-red-500 py-8">Gagal memuat data produk.</p>`;
             }
         }
 
-        function tampilkanPromo(dataArray) {
-            if (dataArray.length === 0) {
-                promoListContainer.innerHTML = `<p class="text-center text-xs text-gray-400 py-8">Belum ada promo di database.</p>`;
+        // Menampilkan HANYA produk yang berstatus isPromo == true di halaman utama
+        function tampilkanPromoAktif(dataArray, keyword = "") {
+            const filtered = dataArray.filter(item => {
+                const matchKeyword = item.nama.toLowerCase().includes(keyword) || 
+                                   (item.keterangan && item.keterangan.toLowerCase().includes(keyword));
+                return item.isPromo === true && matchKeyword;
+            });
+
+            if (filtered.length === 0) {
+                promoListContainer.innerHTML = `<p class="text-center text-xs text-gray-400 py-8">Belum ada promo aktif. Seret atau tekan tombol (+) untuk menambah.</p>`;
                 return;
             }
 
             promoListContainer.innerHTML = "";
-            dataArray.forEach((data) => {
-                const isActive = data.status !== false;
+            filtered.forEach((data) => {
+                const formattedHarga = data.harga ? `Rp ${data.harga}` : 'Rp 0';
+                const gambarSrc = data.gambar || '../assets/img/placeholder.png';
 
                 const card = `
-                    <div class="bg-white p-4 rounded-2xl shadow-xs border border-gray-100 space-y-3">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="w-16 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                                    <img src="${data.gambar}" alt="${data.nama}" class="w-full h-full object-cover">
-                                </div>
-                                <div>
-                                    <h2 class="text-xs font-bold text-gray-900">${data.nama}</h2>
-                                    <p class="text-[11px] text-gray-500">${data.keterangan || '-'}</p>
-                                    <span class="text-[10px] ${isActive ? 'text-green-600 font-semibold' : 'text-gray-400'}">${isActive ? 'Status: Aktif' : 'Status: Non-aktif'}</span>
-                                </div>
+                    <div class="bg-white p-3.5 rounded-2xl shadow-xs border border-gray-100 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-14 h-16 bg-gray-200 rounded-xl overflow-hidden flex-shrink-0">
+                                <img src="${gambarSrc}" alt="${data.nama}" class="w-full h-full object-cover">
                             </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" ${isActive ? 'checked' : ''} onchange="ubahStatusPromo('${data.id}', ${isActive})" class="sr-only peer">
-                                <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-900"></div>
-                            </label>
+                            <div>
+                                <h2 class="text-xs font-bold text-gray-900">${data.nama}</h2>
+                                <p class="text-[11px] text-gray-500">${data.keterangan || '-'}</p>
+                                <p class="text-xs font-black text-red-600 mt-0.5">${formattedHarga}</p>
+                                <span class="text-[10px] text-red-600 font-bold">🔥 Status: Aktif sebagai Promo</span>
+                            </div>
                         </div>
-                        
-                        <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
-                            <button onclick="bukaModalEdit('${data.id}', '${data.nama.replace(/'/g, "\\'")}', '${(data.keterangan || '').replace(/'/g, "\\'")}', '${data.gambar}')" class="px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 text-[11px] font-bold rounded-lg transition cursor-pointer flex items-center gap-1">
-                                ✏️ Edit
-                            </button>
-                            <button onclick="hapusPromo('${data.id}')" class="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-bold rounded-lg transition cursor-pointer flex items-center gap-1">
-                                🗑️ Hapus
-                            </button>
-                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" checked onchange="ubahStatusPromo('${data.id}', true)" class="sr-only peer">
+                            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-600"></div>
+                        </label>
                     </div>
                 `;
                 promoListContainer.innerHTML += card;
             });
         }
 
-        // Fitur Pencarian Real-time
+        // Menampilkan produk di dalam Modal Berdasarkan Tab Kategori & Pencarian
+        function tampilkanModalProduk(dataArray, keyword = "") {
+            const filtered = dataArray.filter(item => {
+                const itemCat = item.kategori || "Makanan";
+                const matchCat = itemCat.toLowerCase() === currentModalCategory.toLowerCase();
+                const matchKeyword = item.nama.toLowerCase().includes(keyword) || 
+                                   (item.keterangan && item.keterangan.toLowerCase().includes(keyword));
+                return matchCat && matchKeyword;
+            });
+
+            if (filtered.length === 0) {
+                listProdukContainer.innerHTML = `<p class="text-center text-xs text-gray-400 py-6">Tidak ada produk di kategori ${currentModalCategory}.</p>`;
+                return;
+            }
+
+            listProdukContainer.innerHTML = "";
+            filtered.forEach((data) => {
+                const isPromo = data.isPromo === true;
+                const formattedHarga = data.harga ? `Rp ${data.harga}` : 'Rp 0';
+                const gambarSrc = data.gambar || '../assets/img/placeholder.png';
+
+                const itemHTML = `
+                    <div class="bg-gray-50 p-2.5 rounded-xl border border-gray-100 flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-10 h-11 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                                <img src="${gambarSrc}" alt="${data.nama}" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-gray-900">${data.nama}</h4>
+                                <p class="text-[10px] text-red-600 font-bold">${formattedHarga}</p>
+                            </div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" ${isPromo ? 'checked' : ''} onchange="ubahStatusPromo('${data.id}', ${isPromo})" class="sr-only peer">
+                            <div class="w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-red-600"></div>
+                        </label>
+                    </div>
+                `;
+                listProdukContainer.innerHTML += itemHTML;
+            });
+        }
+
+        window.bukaModalPilihProduk = function() {
+            searchModalInput.value = "";
+            currentModalCategory = "Makanan";
+            
+            document.querySelectorAll('.modal-tab-btn').forEach(btn => {
+                btn.className = "modal-tab-btn px-4 py-1.5 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer flex-shrink-0";
+            });
+            const defaultTab = document.getElementById('modalTab-Makanan');
+            if(defaultTab) {
+                defaultTab.className = "modal-tab-btn px-4 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap bg-red-600 text-white shadow-sm cursor-pointer flex-shrink-0";
+            }
+
+            tampilkanModalProduk(allProduk);
+            modalPilihProduk.classList.remove('hidden');
+        }
+
+        window.tutupModalPilihProduk = function() {
+            modalPilihProduk.classList.add('hidden');
+        }
+
+        // Pencarian Real-time di Halaman Utama Promo
         searchInput.addEventListener('input', (e) => {
             const keyword = e.target.value.toLowerCase();
-            const filtered = allPromos.filter(item => 
-                item.nama.toLowerCase().includes(keyword) || 
-                (item.keterangan && item.keterangan.toLowerCase().includes(keyword))
-            );
-            tampilkanPromo(filtered);
+            tampilkanPromoAktif(allProduk, keyword);
         });
 
-        document.addEventListener("DOMContentLoaded", muatDataPromo);
-
-        // Skrip Option Menu Bawah
-        const btnLainnya = document.getElementById('btnLainnya');
-        const optionMenuModal = document.getElementById('optionMenuModal');
-        const btnCloseOption = document.getElementById('btnCloseOption');
-
-        btnLainnya.addEventListener('click', (e) => {
-            e.stopPropagation();
-            optionMenuModal.classList.remove('hidden');
-        });
-
-        btnCloseOption.addEventListener('click', () => {
-            optionMenuModal.classList.add('hidden');
-        });
-
-        window.addEventListener('click', (e) => {
-            if (e.target === optionMenuModal) {
-                optionMenuModal.classList.add('hidden');
-            }
+        // Pencarian Real-time di dalam Modal Pilih Produk
+        searchModalInput.addEventListener('input', (e) => {
+            const keyword = e.target.value.toLowerCase();
+            tampilkanModalProduk(allProduk, keyword);
         });
     </script>
 </body>

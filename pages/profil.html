@@ -4,13 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profil Toko - Warungku PWA</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Tailwind CSS CDN Stabil -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Manifest PWA -->
     <link rel="manifest" href="../manifest.json">
     <meta name="theme-color" content="#dc2626">
+
+    <!-- CSS Tambahan untuk Hilangkan Scrollbar -->
+    <style>
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        body, html {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
 </head>
-<body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col justify-between pb-24 relative">
+<body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col justify-between pb-24 relative overflow-y-auto">
+
+    <!-- ================= CEK OTENTIKASI LOKAL PERMANEN ================= -->
+    <script>
+        const isLoggedIn = localStorage.getItem('kantin_logged_in');
+        if (!isLoggedIn) {
+            window.location.replace('../login.html');
+        }
+    </script>
 
     <!-- ================= TOAST NOTIFICATION (SMOOTH POPUP) ================= -->
     <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2">
@@ -19,16 +38,9 @@
 
     <!-- ================= HEADER ATAS ================= -->
     <header class="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-40">
-        <a href="manajemen.html" class="flex items-center gap-2 text-gray-700 hover:text-red-600 transition font-semibold text-sm">
+        <a href="manajemen.html" class="flex items-center gap-2 text-gray-700 hover:text-red-600 transition font-semibold text-sm cursor-pointer">
             <span>←</span> Kembali
         </a>
-        <div class="inline-flex items-center border-2 border-red-600 rounded-full px-3 py-1">
-            <div class="w-5 h-5 bg-blue-900 rounded-full flex items-center justify-center text-white font-bold text-xs mr-1">W</div>
-            <div class="text-left leading-tight">
-                <span class="block text-[9px] font-semibold text-black tracking-wider uppercase">APLIKASI</span>
-                <span class="block text-sm font-black text-red-600 leading-none">warungku</span>
-            </div>
-        </div>
     </header>
 
     <!-- ================= KONTEN UTAMA PROFIL TOKO ================= -->
@@ -62,6 +74,13 @@
                     class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-red-600">
             </div>
 
+            <!-- Tagline / Slogan -->
+            <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Tagline / Slogan</label>
+                <input type="text" id="taglineWarung" placeholder="Misal: Murah, Enak, & Halal" 
+                    class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-red-600">
+            </div>
+
             <!-- Nama Pemilik -->
             <div>
                 <label class="block text-xs font-semibold text-gray-700 mb-1">Nama Pemilik / Pengelola</label>
@@ -89,65 +108,24 @@
         </form>
     </main>
 
-    <!-- ================= NAVIGASI BAWAH ================= -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4 flex justify-around items-center z-50 max-w-md mx-auto">
-        <a href="../index.html" class="flex flex-col items-center text-gray-400 text-xs font-medium">
-            <span class="text-lg">🏠</span>
-            <span>Beranda</span>
-        </a>
-        <a href="promo.html" class="flex flex-col items-center text-gray-400 text-xs font-medium">
-            <span class="text-lg">🏷️</span>
-            <span>Promo</span>
-        </a>
-        <a href="#" class="flex flex-col items-center text-gray-400 text-xs font-medium">
-            <span class="text-lg">📢</span>
-            <span>Broadcast</span>
-        </a>
-        <a href="#" class="flex flex-col items-center text-gray-400 text-xs font-medium">
-            <span class="text-lg">📅</span>
-            <span>Event</span>
-        </a>
-        <button id="btnLainnya" class="flex flex-col items-center text-red-600 text-xs font-semibold bg-transparent border-none cursor-pointer focus:outline-none">
-            <span class="text-lg">☰</span>
-            <span>Lainnya</span>
-        </button>
-    </nav>
-
-    <!-- ================= OPTION MENU (POP-UP) ================= -->
-    <div id="optionMenuModal" class="fixed inset-0 bg-black/30 flex items-end justify-end pb-16 pr-4 z-50 hidden">
-        <div class="bg-white text-gray-800 w-52 rounded-2xl shadow-xl overflow-hidden border border-gray-200">
-            <div class="bg-red-600 text-white px-4 py-2.5 flex justify-between items-center">
-                <span class="font-bold tracking-wider text-xs uppercase">OPTION MENU</span>
-                <button id="btnCloseOption" class="text-white hover:text-gray-200 font-bold text-sm cursor-pointer">✕</button>
-            </div>
-            <div class="py-1 divide-y divide-gray-100 text-xs font-medium">
-                <a href="profil.html" class="flex items-center gap-3 px-4 py-3 bg-red-50 text-red-600 font-bold transition">
-                    <span class="text-base">⚙️</span>
-                    <span>Pengaturan</span>
-                </a>
-                <a href="manajemen.html" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-gray-700">
-                    <span class="text-red-600 text-base">🏷️</span>
-                    <span>Manajemen</span>
-                </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-gray-700">
-                    <span class="text-red-600 text-base">📅</span>
-                    <span>Event</span>
-                </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-gray-700">
-                    <span class="text-red-600 text-base">📦</span>
-                    <span>Lihat Pesanan</span>
-                </a>
-            </div>
-        </div>
-    </div>
+    <!-- ================= PENAMPUNG NAVIGASI BAWAH OTOMATIS ================= -->
+    <div id="appNavigation"></div>
 
     <!-- ================= SCRIPT LOGIKA & FIRESTORE ================= -->
     <script type="module">
         import { db } from "../assets/js/firebase-config.js";
         import { doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { initNavigation } from "../assets/js/navigation.js";
+
+        // Inisialisasi Navigasi Terpusat (parameter 'lainnya' menandakan menu Lainnya aktif)
+        document.addEventListener("DOMContentLoaded", () => {
+            initNavigation('lainnya');
+            muatProfilToko();
+        });
 
         const tokoForm = document.getElementById('tokoForm');
         const namaWarung = document.getElementById('namaWarung');
+        const taglineWarung = document.getElementById('taglineWarung');
         const namaPemilik = document.getElementById('namaPemilik');
         const teleponWarung = document.getElementById('teleponWarung');
         const alamatWarung = document.getElementById('alamatWarung');
@@ -170,7 +148,7 @@
             }, 2500);
         }
 
-        // Ambil Data Profil Toko dari Firestore (Koleksi "toko", Dokumen "informasi")
+        // Fungsi Memuat Profil Toko dari Firestore
         async function muatProfilToko() {
             try {
                 const tokoRef = doc(db, "toko", "informasi");
@@ -179,6 +157,7 @@
                 if (tokoSnap.exists()) {
                     const data = tokoSnap.data();
                     namaWarung.value = data.namaWarung || "";
+                    taglineWarung.value = data.tagline || "";
                     namaPemilik.value = data.namaPemilik || "";
                     teleponWarung.value = data.telepon || "";
                     alamatWarung.value = data.alamat || "";
@@ -195,7 +174,7 @@
             }
         }
 
-        // Konversi Logo ke Base64
+        // Event listener saat file logo baru dipilih
         logoFile.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -210,7 +189,7 @@
             }
         });
 
-        // Simpan Profil Toko ke Firestore
+        // Event listener saat form disimpan
         tokoForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -223,6 +202,7 @@
 
                 const dataToko = {
                     namaWarung: namaWarung.value.trim(),
+                    tagline: taglineWarung.value.trim(),
                     namaPemilik: namaPemilik.value.trim(),
                     telepon: teleponWarung.value.trim(),
                     alamat: alamatWarung.value.trim(),
@@ -243,28 +223,6 @@
             } finally {
                 btnSimpanToko.textContent = "Simpan Profil Warung";
                 btnSimpanToko.disabled = false;
-            }
-        });
-
-        document.addEventListener("DOMContentLoaded", muatProfilToko);
-
-        // Skrip Option Menu Bawah
-        const btnLainnya = document.getElementById('btnLainnya');
-        const optionMenuModal = document.getElementById('optionMenuModal');
-        const btnCloseOption = document.getElementById('btnCloseOption');
-
-        btnLainnya.addEventListener('click', (e) => {
-            e.stopPropagation();
-            optionMenuModal.classList.remove('hidden');
-        });
-
-        btnCloseOption.addEventListener('click', () => {
-            optionMenuModal.classList.add('hidden');
-        });
-
-        window.addEventListener('click', (e) => {
-            if (e.target === optionMenuModal) {
-                optionMenuModal.classList.add('hidden');
             }
         });
     </script>
