@@ -1,14 +1,12 @@
 // assets/js/navigation.js
 export function initNavigation(activePage = '') {
-    // Pengecekan role dihapus, sehingga semua menu (termasuk admin) akan selalu tampil
     const isAdmin = true;
 
-    // Menggunakan path absolut berbasis root (diawali garis miring /)
     const homeHref = '/index.html';
     const paketanHref = '/pages/paketan-view.html';
     const pesanHref = '/pages/pesan.html';
     const produkHref = '/pages/produk-view.html';
-    const profilHref = '/pages/profil.html'; // Diubah dari /pages/profil-pelanggan.html menjadi /pages/profil.html
+    const profilHref = '/pages/profil.html';
     const manajemenHref = '/pages/manajemen.html';
     const produkAdminHref = '/pages/produk.html';
     const pesanOrderHref = '/pages/pesan-order.html';
